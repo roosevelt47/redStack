@@ -6,14 +6,14 @@
 > redStack is now feature complete and supports both public internet deployments and closed environments (HTB/VL/PG) that use OpenVPN. This is actively being tested and debugged, so please reach out with any issues or concerns.
 
 > [!IMPORTANT]
-> redStack is not a tutorial on how to use C2 frameworks. It is an environment that removes the infrastructure hurdle so you can focus on learning. The lab gives you a fully configured, production-style red team setup out of the box (Boot-to-Breach). **This lab is strictly for authorized training and lab environments only (HTB, VL, PG, personal lab VMs). It is not intended for use in real-world engagements or against targets you do not own and have explicit written permission to test.**
+> redStack is not a tutorial on how to use C2 frameworks. It is an environment that removes the infrastructure hurdle so you can focus on learning. The lab gives you a fully configured, production-style red team setup out of the box (Boot-to-Breach). **This lab is strictly for authorized training and lab environments only (HTB, VL, PG, self-hosted cyber ranges, personal lab VMs, etc.). It is not intended for use in real-world engagements or against targets you do not own and have explicit written permission to test.**
 
 > [!CAUTION]
 > **AWS TOS: Use at your own risk**
 >
-> Hosting C2 infrastructure on AWS may raise concerns under the [AWS Acceptable Use Policy](https://aws.amazon.com/aup/). Before deploying, review the AUP and submit the [AWS Penetration Testing / Simulated Events request form](https://aws.amazon.com/security/penetration-testing/) — this is the appropriate channel for notifying AWS that you are running security tooling on their infrastructure.
+> Hosting C2 infrastructure on AWS may raise concerns under the [AWS Acceptable Use Policy](https://aws.amazon.com/aup/). Before deploying, review the AUP and submit the [AWS Penetration Testing / Simulated Events request form](https://aws.amazon.com/security/penetration-testing/). This is the appropriate channel for notifying AWS that you are running security tooling on their infrastructure.
 >
-> As long as you are using redStack exclusively for personal lab work and authorized training platforms (HTB, VL, PG), you are generally in the clear. A quick conversation with AWS customer support can confirm this and give you peace of mind specific to your account and usage pattern. To be safe, consider running redStack from a dedicated, single-purpose throwaway AWS account — one used solely for this lab — so there is no risk to other workloads, billing alerts, or account standing.
+> As long as you are using redStack exclusively for personal lab work and authorized training platforms (HTB, VL, PG, self-hosted cyber ranges, etc.), you are generally in the clear. A quick conversation with AWS customer support can confirm this and give you peace of mind specific to your account and usage pattern. To be safe, consider running redStack from a dedicated, single-purpose throwaway AWS account. One used solely for this lab so there is no risk to other workloads, billing alerts, or account standing.
 
 ---
 
