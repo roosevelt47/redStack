@@ -6,7 +6,14 @@
 > redStack is now feature complete and supports both public internet deployments and closed environments (HTB/VL/PG) that use OpenVPN. This is actively being tested and debugged, so please reach out with any issues or concerns.
 
 > [!IMPORTANT]
-> redStack is not a tutorial on how to use C2 frameworks. It is an environment that removes the infrastructure hurdle so you can focus on learning. The lab gives you a fully configured, production-style red team setup out of the box (Boot-to-Breach). What you do with it is up to you.
+> redStack is not a tutorial on how to use C2 frameworks. It is an environment that removes the infrastructure hurdle so you can focus on learning. The lab gives you a fully configured, production-style red team setup out of the box (Boot-to-Breach). **This lab is strictly for authorized training and lab environments only (HTB, VL, PG, personal lab VMs). It is not intended for use in real-world engagements or against targets you do not own and have explicit written permission to test.**
+
+> [!CAUTION]
+> **AWS TOS: Use at your own risk**
+>
+> Hosting C2 infrastructure on AWS may raise concerns under the [AWS Acceptable Use Policy](https://aws.amazon.com/aup/). Before deploying, review the AUP and submit the [AWS Penetration Testing / Simulated Events request form](https://aws.amazon.com/security/penetration-testing/) — this is the appropriate channel for notifying AWS that you are running security tooling on their infrastructure.
+>
+> As long as you are using redStack exclusively for personal lab work and authorized training platforms (HTB, VL, PG), you are generally in the clear. A quick conversation with AWS customer support can confirm this and give you peace of mind specific to your account and usage pattern. To be safe, consider running redStack from a dedicated, single-purpose throwaway AWS account — one used solely for this lab — so there is no risk to other workloads, billing alerts, or account standing.
 
 ---
 
@@ -271,7 +278,7 @@ ssh_private_key_path = "./rs-rsa-key.pem"     # Path to your .pem file (for Wind
 ```
 
 > [!NOTE]
-> **Default deployment uses a public domain with htaccess filtering enabled.** This is the standard mode for real-world use and is what the rest of this guide assumes. The closed environment option below is only for HTB/VL/PG Pro Labs and other isolated OpenVPN environments where no public DNS exists.
+> **Default deployment uses a public domain with htaccess filtering enabled.** This is the standard mode for open lab environments and is what the rest of this guide assumes. The closed environment option below is only for HTB/VL/PG Pro Labs and other isolated OpenVPN environments where no public DNS exists.
 >
 > **Open environment** (default: internet access, domain registered):
 > Set `redirector_domain` to your domain. Complete Step 1.6 (DNS) and Step 3.1 (Certbot) to get a trusted TLS certificate. Agents call back using your domain over HTTPS. Scanner/AV blocking via `redirect.rules` is enabled by default.
@@ -469,7 +476,7 @@ Log into your domain registrar or DNS provider (e.g., Namecheap, Cloudflare, Rou
 | A Record | `www` | `<Redirector Elastic IP>` | Automatic |
 | A Record | `sub` | `<Redirector Elastic IP>` | Automatic |
 
-Only `@` (the apex domain) is required. The `www` entry is only needed if you want callbacks over `www.yourdomain.tld`. The `sub` placeholder represents any custom subdomain: e.g., `test.yourdomain.tld`, `cdn.yourdomain.tld`, `chat.yourdomain.tld`. Custom subdomains blend beacon and implant traffic into patterns that look like legitimate service traffic, making callbacks harder to flag in firewall logs and network monitoring.
+Only `@` (the apex domain) is required. The `www` entry is only needed if you want callbacks over `www.yourdomain.tld`. The `sub` placeholder represents any custom subdomain: e.g., `test.yourdomain.tld`, `cdn.yourdomain.tld`, `chat.yourdomain.tld`. Custom subdomains blend beacon and implant traffic into patterns that look like legitimate service traffic, making callbacks harder to flag in firewall logs and network monitoring. This simulates real-world C2 tradecraft so you can practice detection and evasion techniques in a lab setting.
 
 **Verify DNS Propagation** (substitute your actual `redirector_domain` value from `terraform.tfvars`):
 
