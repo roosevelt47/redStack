@@ -98,6 +98,17 @@ resource "aws_route" "teamserver_vpn_targets" {
   network_interface_id   = aws_network_interface.guacamole.id
 }
 
+# Adopt the AWS-created default SG so it is tracked in state, tagged, and
+# destroyed cleanly with the VPC. No rules — all traffic uses explicit SGs.
+resource "aws_default_security_group" "redirector" {
+  vpc_id = aws_vpc.redirector.id
+
+  tags = {
+    Name = "${var.project_name}-Redirector-VPC-default-sg"
+    Note = "Auto-created by AWS — managed by Terraform, no rules assigned"
+  }
+}
+
 # ============================================================================
 # REDIRECTOR SECURITY GROUP
 # ============================================================================

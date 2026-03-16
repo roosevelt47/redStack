@@ -142,6 +142,18 @@ resource "aws_route_table_association" "training" {
   route_table_id = aws_route_table.training[0].id
 }
 
+# Adopt the AWS-created default SG so it is tracked in state, tagged, and
+# destroyed cleanly with the VPC. No rules — all traffic uses explicit SGs.
+resource "aws_default_security_group" "training" {
+  count  = var.use_default_vpc ? 0 : 1
+  vpc_id = aws_vpc.training[0].id
+
+  tags = {
+    Name = "${var.project_name}-TeamServer-VPC-default-sg"
+    Note = "Auto-created by AWS — managed by Terraform, no rules assigned"
+  }
+}
+
 data "aws_availability_zones" "available" {
   state = "available"
 }
