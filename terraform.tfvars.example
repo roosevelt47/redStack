@@ -39,8 +39,8 @@ havoc_instance_type      = "t3.medium"  # 2 vCPU, 4GB RAM
 redirector_instance_type = "t3.small"   # 2 vCPU, 2GB RAM
 
 # Network configuration
-use_default_vpc = true    # Set to false to create a dedicated VPC
-# vpc_cidr = "10.50.0.0/16"  # Only used if use_default_vpc = false
+use_default_vpc = false   # Creates a dedicated VPC (recommended)
+vpc_cidr        = "10.50.0.0/16"
 
 # Mythic configuration
 enable_mythic_autostart = true  # Auto-start Mythic on boot

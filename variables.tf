@@ -70,7 +70,7 @@ variable "havoc_instance_type" {
 variable "use_default_vpc" {
   description = "Use default VPC (true) or create dedicated VPC (false)"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "vpc_cidr" {
