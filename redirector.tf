@@ -10,7 +10,8 @@ resource "aws_vpc" "redirector" {
   enable_dns_support   = true
 
   tags = {
-    Name = "${var.project_name}-redirector-vpc"
+    Name = "${var.project_name}-Redirector-VPC"
+    Role = "Redirector Infrastructure"
     Note = "Simulates external VPS provider network"
   }
 }
