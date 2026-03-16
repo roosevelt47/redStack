@@ -299,6 +299,14 @@ ssh_private_key_path = "./rs-rsa-key.pem"     # Path to your .pem file (for Wind
 **Optional:** these have sensible defaults but affect callback URLs baked into payloads and VPN routing. Review before deploying:
 
 ```hcl
+# Network: by default redStack creates a dedicated VPC (10.50.0.0/16) for the team server.
+# This keeps the lab isolated and avoids conflicts with other AWS workloads in the same account.
+# If you need to use an existing default VPC instead (e.g. if you hit the VPC limit), set:
+#   use_default_vpc = true
+# Leave vpc_cidr as-is unless the default range conflicts with something on your network.
+use_default_vpc = false
+vpc_cidr        = "10.50.0.0/16"
+
 # Instance types: adjust for budget/performance
 sliver_instance_type = "t3.small"
 havoc_instance_type  = "t3.medium"
@@ -1639,7 +1647,9 @@ aws ec2 describe-key-pairs --query 'KeyPairs[].KeyName'
 **Error:** `VPC limit exceeded`
 
 ```bash
-# Use default VPC instead
+# AWS accounts have a default limit of 5 VPCs per region.
+# redStack creates 2 (team server + redirector), so you need at least 2 free slots.
+# If you are at the limit, either delete unused VPCs or switch to the existing default VPC:
 # In terraform.tfvars: use_default_vpc = true
 ```
 
