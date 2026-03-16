@@ -79,6 +79,12 @@ variable "vpc_cidr" {
   default     = "10.50.0.0/16"
 }
 
+variable "redirector_vpc_cidr" {
+  description = "CIDR block for the redirector VPC. Change when running multiple deployments simultaneously."
+  type        = string
+  default     = "10.60.0.0/16"
+}
+
 variable "enable_mythic_autostart" {
   description = "Automatically start Mythic on instance boot"
   type        = bool
