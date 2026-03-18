@@ -178,24 +178,6 @@ cd redStack
 | Linux (any) | `curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip awscliv2.zip && sudo ./aws/install` |
 | Windows | Download and run the MSI installer from <https://aws.amazon.com/cli/> |
 
-**Configure AWS CLI:**
-
-```bash
-aws configure
-```
-
-<details>
-<summary>aws configure prompts</summary>
-
-- **AWS Access Key ID** - from IAM Console → Users → Security credentials
-- **AWS Secret Access Key** - shown once when creating the access key
-- **Default region name** - `us-east-1` (or your preferred region)
-- **Default output format** - `json`
-
-If you don't have an access key: IAM → Users → [your user] → Security credentials → Create access key → CLI use case
-
-</details>
-
 **Install Terraform:**
 
 | Platform | Command |
@@ -219,7 +201,7 @@ Create a dedicated IAM user with the `AdministratorAccess` managed policy attach
 1. Go to **IAM Console** > **Users** > **Create user**
 2. Set a username (e.g., `redstack-admin`)
 3. Attach the policy: `AdministratorAccess`
-4. Under **Security credentials**, create an access key and paste into `aws configure`
+4. Under **Security credentials**, create an access key and copy the Access Key ID and Secret Access Key
 
 > [!NOTE]
 > If you followed the earlier advice and spun up a dedicated single-purpose AWS account for this lab, Option A carries minimal risk. Admin access on an account with nothing else in it is effectively scoped to this lab.
@@ -258,12 +240,28 @@ If you are deploying into a shared or production account, create a user with onl
 1. Go to **IAM Console** > **Users** > **Create user**
 2. Set a username (e.g., `redstack-deploy`)
 3. Under **Permissions**, choose **Attach policies directly** > **Create policy**, and paste the JSON above
-4. Under **Security credentials**, create an access key and paste into `aws configure`
+4. Under **Security credentials**, create an access key and copy the Access Key ID and Secret Access Key
 
 > [!NOTE]
 > `ec2:*` covers the bulk of what Terraform needs. The IAM actions are scoped to the minimum required for instance profiles. If you hit a permissions error during `terraform apply`, the error message will name the specific action needed so you can add it.
 
-**Checkpoint:** ✅ IAM user created and `aws configure` run with the new credentials
+**Configure AWS CLI:**
+
+```bash
+aws configure
+```
+
+<details>
+<summary>aws configure prompts</summary>
+
+- **AWS Access Key ID** - from IAM Console → Users → Security credentials
+- **AWS Secret Access Key** - shown once when creating the access key
+- **Default region name** - `us-east-1` (or your preferred region)
+- **Default output format** - `json`
+
+</details>
+
+**Checkpoint:** ✅ IAM user created and AWS CLI configured with the new credentials
 
 ### Step 0.3: Verification Commands
 
