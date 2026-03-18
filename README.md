@@ -190,25 +190,17 @@ cd redStack
 
 ### Step 0.2: AWS IAM Permissions
 
-redStack provisions EC2 instances, VPCs, subnets, security groups, Elastic IPs, network interfaces, key pairs, and IAM resources. The AWS credentials you configure must have sufficient permissions to create and destroy all of these.
+redStack provisions EC2, VPC, security group, Elastic IP, network interface, key pair, and IAM resources. Your AWS credentials need sufficient permissions to create and destroy all of these.
 
-There are two recommended approaches:
+**For both options:** Go to **IAM Console** > **Users** > **Create user**, set a username (e.g., `redS-operator`), then under **Security credentials** create an access key and save the Access Key ID and Secret Access Key.
 
-**Option A: Full Administrator Access (Quickest)**
+**Option A: AdministratorAccess (recommended for a dedicated lab account)**
 
-Create a dedicated IAM user with the `AdministratorAccess` managed policy attached. This is the fastest path and is fine for a throwaway lab account used solely for redStack.
+Attach the `AdministratorAccess` managed policy. On a single-purpose throwaway account this carries minimal risk — admin access scoped to an account with nothing else in it is fine.
 
-1. Go to **IAM Console** > **Users** > **Create user**
-2. Set a username (e.g., `redS-operator`)
-3. Attach the policy: `AdministratorAccess`
-4. Under **Security credentials**, create an access key and copy the Access Key ID and Secret Access Key
+**Option B: Least Privilege (for shared or production accounts)**
 
-> [!NOTE]
-> If you followed the earlier advice and spun up a dedicated single-purpose AWS account for this lab, Option A carries minimal risk. Admin access on an account with nothing else in it is effectively scoped to this lab.
-
-**Option B: Least Privilege Access**
-
-If you are deploying into a shared or production account, create a user with only the permissions redStack actually needs. Attach the following inline or managed policy:
+Under **Permissions**, choose **Attach policies directly** > **Create policy** and paste the policy below.
 
 <details>
 <summary>Minimum IAM Policy (click to expand)</summary>
@@ -221,15 +213,19 @@ If you are deploying into a shared or production account, create a user with onl
       "Effect": "Allow",
       "Action": [
         "ec2:*",
-        "iam:CreateInstanceProfile",
-        "iam:DeleteInstanceProfile",
-        "iam:GetInstanceProfile",
-        "iam:PassRole",
-        "iam:AddRoleToInstanceProfile",
-        "iam:RemoveRoleFromInstanceProfile",
         "sts:GetCallerIdentity"
       ],
       "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "iam:GetUser",
+        "iam:GetUserPolicy",
+        "iam:ListUserPolicies",
+        "iam:ListAttachedUserPolicies"
+      ],
+      "Resource": "arn:aws:iam::*:user/${aws:username}"
     }
   ]
 }
@@ -237,13 +233,12 @@ If you are deploying into a shared or production account, create a user with onl
 
 </details>
 
-1. Go to **IAM Console** > **Users** > **Create user**
-2. Set a username (e.g., `redS-operator`)
-3. Under **Permissions**, choose **Attach policies directly** > **Create policy**, and paste the JSON above
-4. Under **Security credentials**, create an access key and copy the Access Key ID and Secret Access Key
-
 > [!NOTE]
-> `ec2:*` covers the bulk of what Terraform needs. The IAM actions are scoped to the minimum required for instance profiles. If you hit a permissions error during `terraform apply`, the error message will name the specific action needed so you can add it.
+> **Why these permissions:**
+>
+> - **`ec2:*`** — redStack is EC2-only infrastructure (instances, VPCs, subnets, security groups, ENIs, EIPs, VPC peering). Every resource Terraform creates and destroys maps to an EC2 API call. No S3, RDS, Lambda, or other services are used.
+> - **`sts:GetCallerIdentity`** — Terraform calls this at init to verify the credentials are valid and identify the account. Without it, `terraform init` fails before any resources are touched.
+> - **`iam:GetUser`, `iam:GetUserPolicy`, `iam:ListUserPolicies`, `iam:ListAttachedUserPolicies`** — read-only, scoped to your own user only (`${aws:username}`). These let you inspect your own permissions when debugging an access denied error (`aws iam get-user-policy --user-name redS-operator --policy-name redStack-least-privilege`). No IAM write access is granted and the scope prevents reading any other principal's policies.
 
 **Configure AWS CLI:**
 
