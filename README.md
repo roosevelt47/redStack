@@ -194,9 +194,11 @@ redStack provisions EC2, VPC, security group, Elastic IP, network interface, key
 
 **For both options:** Go to **IAM Console** > **Users** > **Create user**, set a username (e.g., `redS-operator`), then under **Security credentials** create an access key and save the Access Key ID and Secret Access Key.
 
-**Option A: AdministratorAccess (recommended for a dedicated lab account)**
+**Option A: AdministratorAccess (recommended — use this unless you have a reason not to)**
 
-Attach the `AdministratorAccess` managed policy. On a single-purpose throwaway account this carries minimal risk. Admin access scoped to an account with nothing else in it is effectively limited to this lab.
+This is the right choice for the vast majority of redStack users. If you followed the earlier recommendation and created a dedicated AWS account solely for this lab, `AdministratorAccess` is the practical default. There are no other workloads, billing resources, or sensitive data in the account to protect. Admin access on an empty account carries the same real-world risk as the scoped policy: if the credentials are compromised, the attacker can only touch the lab infrastructure you already plan to tear down.
+
+Least privilege adds meaningful protection when credentials could expose things beyond this lab. On a dedicated account, there is nothing else to expose. Use Option A, keep it simple, and save the complexity of Option B for when it actually buys you something.
 
 <details>
 <summary>How to create the IAM user and attach AdministratorAccess (click to expand)</summary>
@@ -211,7 +213,7 @@ Attach the `AdministratorAccess` managed policy. On a single-purpose throwaway a
 
 </details>
 
-**Option B: Least Privilege (for shared or production accounts)**
+**Option B: Least Privilege (only if you are deploying into a shared or production account)**
 
 <details>
 <summary>How to create the IAM user and attach the least-privilege policy (click to expand)</summary>
