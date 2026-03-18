@@ -635,7 +635,7 @@ terraform output deployment_info
 
 Open in your browser:
 
-```text
+```http
 https://<GUAC_PUBLIC_IP>/guacamole
 ```
 
@@ -986,14 +986,16 @@ sudo ./mythic-cli start
 
 **Access Mythic UI (from Windows workstation via Guacamole RDP):**
 
-```text
+```http
 https://mythic:7443
 ```
 
 - Login: `mythic_admin`
 - Password: `sudo cat /opt/Mythic/.env | grep MYTHIC_ADMIN_PASSWORD` (run on Mythic server)
 
-**Navigate:** Installed Services → **C2** tab
+```console
+Navigate: Installed Services > C2 tab
+```
 
 The `http` profile should already show:
 
@@ -1006,7 +1008,9 @@ If it shows **Stopped**, click **"Start Profile"**.
 
 ### Step 4.2: Generate Agent
 
-**Navigate:** Click **Create Payload** in the left sidebar
+```console
+Navigate: Create Payload (left sidebar)
+```
 
 The wizard has 5 steps:
 
@@ -1408,7 +1412,7 @@ sudo cat /opt/Mythic/.env | grep MYTHIC_ADMIN_PASSWORD
 
 **Access web UI** (from Windows workstation or Guacamole RDP):
 
-```text
+```http
 https://mythic:7443
 ```
 
