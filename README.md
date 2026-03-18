@@ -196,11 +196,38 @@ redStack provisions EC2, VPC, security group, Elastic IP, network interface, key
 
 **Option A: AdministratorAccess (recommended for a dedicated lab account)**
 
-Attach the `AdministratorAccess` managed policy. On a single-purpose throwaway account this carries minimal risk — admin access scoped to an account with nothing else in it is fine.
+Attach the `AdministratorAccess` managed policy. On a single-purpose throwaway account this carries minimal risk. Admin access scoped to an account with nothing else in it is effectively limited to this lab.
+
+<details>
+<summary>Steps (click to expand)</summary>
+
+1. Go to **IAM Console** > **Users** > **Create user**
+2. Set a username (e.g., `redS-operator`)
+3. Under **Permissions**, choose **Attach policies directly** and search for `AdministratorAccess`
+4. Check the box next to `AdministratorAccess` and click **Next**, then **Create user**
+5. Open the user, go to **Security credentials**, and click **Create access key**
+6. Select **Command Line Interface (CLI)**, acknowledge the recommendation, and click **Next**
+7. Copy or download the **Access Key ID** and **Secret Access Key**. The secret is shown only once.
+
+</details>
 
 **Option B: Least Privilege (for shared or production accounts)**
 
-Under **Permissions**, choose **Attach policies directly** > **Create policy** and paste the policy below.
+<details>
+<summary>Steps (click to expand)</summary>
+
+1. Go to **IAM Console** > **Users** > **Create user**
+2. Set a username (e.g., `redS-operator`)
+3. Under **Permissions**, choose **Attach policies directly** > **Create policy**
+4. Select the **JSON** tab and paste the policy below
+5. Name the policy (e.g., `redStack-least-privilege`) and click **Create policy**
+6. Back on the user creation screen, search for and attach the policy you just created
+7. Click **Next**, then **Create user**
+8. Open the user, go to **Security credentials**, and click **Create access key**
+9. Select **Command Line Interface (CLI)**, acknowledge the recommendation, and click **Next**
+10. Copy or download the **Access Key ID** and **Secret Access Key**. The secret is shown only once.
+
+</details>
 
 <details>
 <summary>Minimum IAM Policy (click to expand)</summary>
@@ -236,9 +263,9 @@ Under **Permissions**, choose **Attach policies directly** > **Create policy** a
 > [!NOTE]
 > **Why these permissions:**
 >
-> - **`ec2:*`** — redStack is EC2-only infrastructure (instances, VPCs, subnets, security groups, ENIs, EIPs, VPC peering). Every resource Terraform creates and destroys maps to an EC2 API call. No S3, RDS, Lambda, or other services are used.
-> - **`sts:GetCallerIdentity`** — Terraform calls this at init to verify the credentials are valid and identify the account. Without it, `terraform init` fails before any resources are touched.
-> - **`iam:GetUser`, `iam:GetUserPolicy`, `iam:ListUserPolicies`, `iam:ListAttachedUserPolicies`** — read-only, scoped to your own user only (`${aws:username}`). These let you inspect your own permissions when debugging an access denied error (`aws iam get-user-policy --user-name redS-operator --policy-name redStack-least-privilege`). No IAM write access is granted and the scope prevents reading any other principal's policies.
+> - **`ec2:*`**: redStack is EC2-only infrastructure. Every resource Terraform creates and destroys (instances, VPCs, subnets, security groups, ENIs, EIPs, VPC peering) maps to an EC2 API call. No S3, RDS, Lambda, or other services are used.
+> - **`sts:GetCallerIdentity`**: Terraform calls this at init to verify credentials and identify the account. Without it, `terraform init` fails before any resources are touched.
+> - **`iam:GetUser`, `iam:GetUserPolicy`, `iam:ListUserPolicies`, `iam:ListAttachedUserPolicies`**: Read-only, self-scoped to `${aws:username}`. Lets you inspect your own permissions when debugging an access denied error. No IAM write access is granted and the scope prevents reading any other principal's policies.
 
 **Configure AWS CLI:**
 
@@ -283,19 +310,25 @@ curl -s ifconfig.me
 
 **Terraform does NOT create the SSH key pair - you must create it manually first.**
 
-**Windows (PowerShell):**
+<details>
+<summary>Windows (PowerShell)</summary>
 
 ```powershell
 aws ec2 create-key-pair --key-name rs-rsa-key --query 'KeyMaterial' --output text | Out-File -Encoding ascii rs-rsa-key.pem
 icacls "rs-rsa-key.pem" /inheritance:r /grant:r "$($env:USERNAME):R"
 ```
 
-**Linux/Mac (bash):**
+</details>
+
+<details>
+<summary>Linux/Mac (bash)</summary>
 
 ```bash
 aws ec2 create-key-pair --key-name rs-rsa-key --query 'KeyMaterial' --output text > ./rs-rsa-key.pem
 chmod 400 ./rs-rsa-key.pem
 ```
+
+</details>
 
 **Verify key pair exists:**
 
@@ -541,17 +574,23 @@ Only `@` (the apex domain) is required. The `www` entry is only needed if you wa
 
 **Verify DNS Propagation** (substitute your actual `redirector_domain` value from `terraform.tfvars`):
 
-**Windows (PowerShell):**
+<details>
+<summary>Windows (PowerShell)</summary>
 
 ```powershell
 Resolve-DnsName yourdomain.tld
 ```
 
-**Linux/Mac (bash):**
+</details>
+
+<details>
+<summary>Linux/Mac (bash)</summary>
 
 ```bash
 dig +short yourdomain.tld
 ```
+
+</details>
 
 **Expected:** The IP returned should match your redirector's Elastic IP.
 
