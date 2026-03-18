@@ -23,8 +23,9 @@
 - [Part 0: Pre-Deployment Checklist](#part-0-pre-deployment-checklist)
   - [Prerequisites](#prerequisites)
   - [Step 0.1: Clone Repository & Install Tools](#step-01-clone-repository--install-tools)
-  - [Step 0.2: Verification Commands](#step-02-verification-commands)
-  - [Step 0.3: Create AWS SSH Key Pair (Required)](#step-03-create-aws-ssh-key-pair-required)
+  - [Step 0.2: AWS IAM Permissions](#step-02-aws-iam-permissions)
+  - [Step 0.3: Verification Commands](#step-03-verification-commands)
+  - [Step 0.4: Create AWS SSH Key Pair (Required)](#step-04-create-aws-ssh-key-pair-required)
 - [Part 1: Initial Deployment](#part-1-initial-deployment)
   - [Step 1.1: Configure Terraform Variables](#step-11-configure-terraform-variables)
   - [Step 1.2: Initialize Terraform](#step-12-initialize-terraform)
@@ -154,7 +155,7 @@ Public Internet Environment (C2 Callback Flow):
 - [ ] Terraform >= 1.0 installed
 - [ ] Your public IP obtained
 - [ ] Repository cloned (see Step 0.1)
-- [ ] SSH key pair created in AWS EC2 (see Step 0.3 below)
+- [ ] SSH key pair created in AWS EC2 (see Step 0.4 below)
 
 ### Step 0.1: Clone Repository & Install Tools
 
@@ -166,7 +167,7 @@ cd redStack
 ```
 
 > [!NOTE]
-> All subsequent commands should be run from inside the `redStack/` directory. This ensures the SSH key pair created in Step 0.3 lands in the right place.
+> All subsequent commands should be run from inside the `redStack/` directory. This ensures the SSH key pair created in Step 0.4 lands in the right place.
 
 **Install AWS CLI:**
 
@@ -205,7 +206,66 @@ If you don't have an access key: IAM → Users → [your user] → Security cred
 
 **Checkpoint:** ✅ Repository cloned, AWS CLI and Terraform installed
 
-### Step 0.2: Verification Commands
+### Step 0.2: AWS IAM Permissions
+
+redStack provisions EC2 instances, VPCs, subnets, security groups, Elastic IPs, network interfaces, key pairs, and IAM resources. The AWS credentials you configure must have sufficient permissions to create and destroy all of these.
+
+There are two recommended approaches:
+
+**Option A: Full Administrator Access (Quickest)**
+
+Create a dedicated IAM user with the `AdministratorAccess` managed policy attached. This is the fastest path and is fine for a throwaway lab account used solely for redStack.
+
+1. Go to **IAM Console** > **Users** > **Create user**
+2. Set a username (e.g., `redstack-admin`)
+3. Attach the policy: `AdministratorAccess`
+4. Under **Security credentials**, create an access key and paste into `aws configure`
+
+> [!NOTE]
+> If you followed the earlier advice and spun up a dedicated single-purpose AWS account for this lab, Option A carries minimal risk. Admin access on an account with nothing else in it is effectively scoped to this lab.
+
+**Option B: Least Privilege Access**
+
+If you are deploying into a shared or production account, create a user with only the permissions redStack actually needs. Attach the following inline or managed policy:
+
+<details>
+<summary>Minimum IAM Policy (click to expand)</summary>
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:*",
+        "iam:CreateInstanceProfile",
+        "iam:DeleteInstanceProfile",
+        "iam:GetInstanceProfile",
+        "iam:PassRole",
+        "iam:AddRoleToInstanceProfile",
+        "iam:RemoveRoleFromInstanceProfile",
+        "sts:GetCallerIdentity"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+```
+
+</details>
+
+1. Go to **IAM Console** > **Users** > **Create user**
+2. Set a username (e.g., `redstack-deploy`)
+3. Under **Permissions**, choose **Attach policies directly** > **Create policy**, and paste the JSON above
+4. Under **Security credentials**, create an access key and paste into `aws configure`
+
+> [!NOTE]
+> `ec2:*` covers the bulk of what Terraform needs. The IAM actions are scoped to the minimum required for instance profiles. If you hit a permissions error during `terraform apply`, the error message will name the specific action needed so you can add it.
+
+**Checkpoint:** ✅ IAM user created and `aws configure` run with the new credentials
+
+### Step 0.3: Verification Commands
 
 ```bash
 # Check AWS access
@@ -226,7 +286,7 @@ curl -s ifconfig.me
 
 **Checkpoint:** ✅ AWS CLI and Terraform working, public IP noted
 
-### Step 0.3: Create AWS SSH Key Pair (Required)
+### Step 0.4: Create AWS SSH Key Pair (Required)
 
 **Terraform does NOT create the SSH key pair - you must create it manually first.**
 
