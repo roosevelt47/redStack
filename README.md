@@ -203,14 +203,14 @@ Least privilege adds meaningful protection when credentials could expose things 
 <details>
 <summary>How to create the IAM user and attach AdministratorAccess (click to expand)</summary>
 
-```bash
-# 1. IAM Console > Users > Create user
-# 2. Username: redS-operator
-# 3. Permissions > Attach policies directly > search "AdministratorAccess"
-# 4. Check AdministratorAccess > Next > Create user
-# 5. Open the new user > Security credentials > Create access key
-# 6. Select: Command Line Interface (CLI) > acknowledge > Next
-# 7. Copy the Access Key ID and Secret Access Key  (the secret is shown only once)
+```yaml
+Step 1: IAM Console > Users > Create user
+Step 2: Username - redS-operator
+Step 3: Permissions > Attach policies directly > search "AdministratorAccess"
+Step 4: Check AdministratorAccess > Next > Create user
+Step 5: Open the new user > Security credentials > Create access key
+Step 6: Select - Command Line Interface (CLI) > acknowledge > Next
+Step 7: Copy the Access Key ID and Secret Access Key (the secret is shown only once)
 ```
 
 </details>
@@ -226,17 +226,17 @@ If you are not sure which account type you have, go back and re-read the dedicat
 <details>
 <summary>How to create the IAM user and attach the least-privilege policy (click to expand)</summary>
 
-```bash
-# 1.  IAM Console > Users > Create user
-# 2.  Username: redS-operator
-# 3.  Permissions > Attach policies directly > Create policy
-# 4.  Select the JSON tab and paste the policy shown below
-# 5.  Name the policy: redStack-least-privilege > Create policy
-# 6.  Back on the user creation screen, search for and attach redStack-least-privilege
-# 7.  Next > Create user
-# 8.  Open the new user > Security credentials > Create access key
-# 9.  Select: Command Line Interface (CLI) > acknowledge > Next
-# 10. Copy the Access Key ID and Secret Access Key  (the secret is shown only once)
+```yaml
+Step 1:  IAM Console > Users > Create user
+Step 2:  Username - redS-operator
+Step 3:  Permissions > Attach policies directly > Create policy
+Step 4:  Select the JSON tab and paste the policy shown below
+Step 5:  Name the policy - redStack-least-privilege > Create policy
+Step 6:  Back on the user creation screen, search for and attach redStack-least-privilege
+Step 7:  Next > Create user
+Step 8:  Open the new user > Security credentials > Create access key
+Step 9:  Select - Command Line Interface (CLI) > acknowledge > Next
+Step 10: Copy the Access Key ID and Secret Access Key (the secret is shown only once)
 ```
 
 </details>
@@ -648,13 +648,15 @@ https://<GUAC_PUBLIC_IP>/guacamole
 
 After logging in you should see **7 pre-configured connections**:
 
-1. **Windows Operator Workstation** (RDP): auto-connects with Administrator credentials
-2. **Mythic C2 Server (SSH)**
-3. **Guacamole Server (SSH)**
-4. **Apache Redirector (SSH)**
-5. **Sliver C2 Server (SSH)**
-6. **Havoc C2 Server (SSH)**
-7. **Havoc C2 Desktop (VNC)**: XFCE4 desktop with the Havoc GUI client
+```yaml
+Step 1: Windows Operator Workstation  (RDP) - auto-connects with Administrator credentials
+Step 2: Mythic C2 Server              (SSH)
+Step 3: Guacamole Server              (SSH)
+Step 4: Apache Redirector             (SSH)
+Step 5: Sliver C2 Server              (SSH)
+Step 6: Havoc C2 Server               (SSH)
+Step 7: Havoc C2 Desktop              (VNC) - XFCE4 desktop with Havoc GUI client
+```
 
 All SSH connections use password auth (no keys needed) pre-configured with the auto-generated lab password.
 
@@ -662,10 +664,12 @@ All SSH connections use password auth (no keys needed) pre-configured with the a
 
 ### Step 2.2: Access Windows Workstation
 
-1. Click **"Windows Operator Workstation"**
-2. RDP connects automatically. Wait 10-30 seconds for the desktop to load.
-3. Verify the following are installed: Chromium, VS Code, MobaXterm, 7-Zip
-4. Open MobaXterm. The **redStack Lab** folder in the sidebar should contain pre-configured SSH sessions for all lab machines.
+```yaml
+Step 1: Click "Windows Operator Workstation"
+Step 2: RDP connects automatically - wait 10-30 seconds for the desktop to load
+Step 3: Verify installed - Chromium, VS Code, MobaXterm, 7-Zip
+Step 4: Open MobaXterm - the redStack Lab folder has pre-configured SSH sessions for all lab machines
+```
 
 **If the connection fails:** Wait 5 more minutes. Windows is the slowest component to initialize.
 
@@ -1030,8 +1034,10 @@ The wizard has 5 steps:
 
 **Step 4: Select C2 Profiles:**
 
-1. In the dropdown, select **http** and click **+ INCLUDE PROFILE**
-2. The profile expands below. Configure the following fields:
+```yaml
+Step 1: In the dropdown, select "http" and click "+ INCLUDE PROFILE"
+Step 2: The profile expands below - configure the fields in the table below
+```
 
 | Field | Value |
 | ----- | ----- |
@@ -1061,8 +1067,10 @@ Apollo (and all agents built in this lab) are unobfuscated by default. To get th
 > [!WARNING]
 > Windows Defender and most AV solutions will flag unobfuscated C2 agents on download or execution. Before downloading `apollo.zip` to your host, disable real-time protection or add your download folder as an exclusion. Any victim VM or target environment you run the agent in will also need AV disabled or exempted, unless you are specifically practicing AV evasion techniques.
 
-1. Navigate to `C:\Users\Administrator\Downloads\`, right-click `apollo.exe`, and select **Compress to ZIP file** (or **Send to → Compressed (zipped) folder**)
-2. Open **This PC → GuacShare on Guacamole RDP → Download** and copy `apollo.zip` into it
+```yaml
+Step 1: Navigate to C:\Users\Administrator\Downloads\ > right-click apollo.exe > Compress to ZIP file
+Step 2: Open This PC > GuacShare on Guacamole RDP > Download > copy apollo.zip into it
+```
 
 Then press `Ctrl+Alt+Shift` in Guacamole, click **Devices**, and click `apollo.zip` to download it to your host machine.
 
@@ -1300,8 +1308,10 @@ havoc-client client
 
 **Create the listener in the Havoc client:**
 
-1. Navigate to: **View → Listeners → Add**
-2. Configure the following fields:
+```yaml
+Step 1: View > Listeners > Add
+Step 2: Configure the following fields (see table below)
+```
 
 | Field | Value |
 | ----- | ----- |
@@ -1315,19 +1325,22 @@ havoc-client client
 
 > The **Hosts** field is the callback address baked into the demon. The **Uris** and **Headers** are embedded in the demon so it sends them on every check-in. The redirector validates the URI prefix and header, then forwards the full path (prefix intact) as plain HTTP to Havoc on port 80.
 
-1. Click **Save**
+```yaml
+Step 3: Click Save
+```
 
 **Generate a Demon (Havoc implant):**
 
 > [!CAUTION]
 > The **Spawn64** and **Spawn32** fields in the Injection section are required. Leaving either blank causes a silent build error. Always fill both in before clicking Generate.
 
-1. Navigate to: **Attack → Payloads**
-2. Select the listener you just created, set Arch **x64**, Format **Windows Exe**
-3. Fill in the **Injection** section:
-   - **Spawn64:** `C:\Windows\System32\notepad.exe`
-   - **Spawn32:** `C:\Windows\SysWOW64\notepad.exe`
-4. Click **Generate**. The `.exe` is saved to `/home/admin/Desktop/demon.x64.exe`
+```yaml
+Step 1: Attack > Payloads
+Step 2: Select the listener you just created > set Arch x64, Format Windows Exe
+Step 3: Injection > Spawn64 = C:\Windows\System32\notepad.exe
+Step 4: Injection > Spawn32 = C:\Windows\SysWOW64\notepad.exe
+Step 5: Click Generate  (output saved to /home/admin/Desktop/demon.x64.exe)
+```
 
 **Transfer the demon to the Windows workstation:**
 
@@ -1505,11 +1518,13 @@ If not running: `sudo systemctl start havoc`. If the binary is missing, see **Ha
 
 Each Guacamole SSH connection should connect without a password prompt and land at the correct hostname. Quick check:
 
-1. Click **"Mythic C2 Server (SSH)"** → prompt: `admin@mythic:~$` → run `ping sliver`
-2. Click **"Guacamole Server (SSH)"** → prompt: `admin@guac:~$`
-3. Click **"Apache Redirector (SSH)"** → prompt: `admin@redirector:~$`
-4. Click **"Sliver C2 Server (SSH)"** → prompt: `admin@sliver:~$`
-5. Click **"Havoc C2 Server (SSH)"** → prompt: `admin@havoc:~$`
+```yaml
+Step 1: Click "Mythic C2 Server (SSH)"   > prompt: admin@mythic:~$  > run: ping sliver
+Step 2: Click "Guacamole Server (SSH)"   > prompt: admin@guac:~$
+Step 3: Click "Apache Redirector (SSH)"  > prompt: admin@redirector:~$
+Step 4: Click "Sliver C2 Server (SSH)"   > prompt: admin@sliver:~$
+Step 5: Click "Havoc C2 Server (SSH)"    > prompt: admin@havoc:~$
+```
 
 **SSH security model:** All Linux servers allow password auth from within the C2 VPC (172.31.0.0/16) but require SSH keys from public IPs. This lets Guacamole connect with passwords while keeping public SSH key-only.
 
@@ -1602,9 +1617,11 @@ docker exec -it postgres_guacamole psql -U guacamole_user -d guacamole_db \
 
 **If Missing, Manually Create via Guacamole UI:**
 
-1. Log into Guacamole web UI
-2. Settings (top right) → Connections → New Connection
-3. For each missing connection: Protocol SSH, Hostname from `terraform output deployment_info`, Port 22, Username `admin`, Password from deployment info
+```yaml
+Step 1: Log into Guacamole web UI
+Step 2: Settings (top right) > Connections > New Connection
+Step 3: For each missing connection - Protocol SSH, Hostname from terraform output, Port 22, Username admin, Password from deployment info
+```
 
 </details>
 
@@ -1782,9 +1799,11 @@ aws ec2 describe-instances --filters "Name=tag:Project,Values=redstack"
 
 **Stop instances when not in use via AWS Console:**
 
-1. AWS Console → EC2 → Instances
-2. Select all redStack instances
-3. Instance State → Stop
+```yaml
+Step 1: AWS Console > EC2 > Instances
+Step 2: Select all redStack instances
+Step 3: Instance State > Stop
+```
 
 **Or via AWS CLI** (get instance IDs from AWS Console or `aws ec2 describe-instances`):
 
@@ -1959,9 +1978,11 @@ external_vpn_cidrs = ["10.10.0.0/16", "10.13.0.0/16", "10.129.0.0/16"]
 
 ### Step 8.2: Deploy and Obtain Your .ovpn File
 
-1. Deploy the infrastructure with `terraform apply`
-2. Wait for cloud-init to complete on all instances (~5 minutes). Guacamole will automatically configure the WireGuard tunnel with the redirector during this time.
-3. Download your `.ovpn` file from your ExtVPN platform (HTB, THM, or Proving Grounds)
+```yaml
+Step 1: Deploy the infrastructure with terraform apply
+Step 2: Wait for cloud-init to complete on all instances (~5 minutes). Guacamole automatically configures the WireGuard tunnel with the redirector during this time.
+Step 3: Download your .ovpn file from your ExtVPN platform (HTB, THM, or Proving Grounds)
+```
 
 ### Step 8.3: Get the .ovpn File to the Redirector
 
@@ -1969,10 +1990,12 @@ Drop any `.ovpn` file into `~/vpn/` on the redirector. The service picks up whic
 
 #### Option A: Guacamole sidebar upload (browser only)
 
-1. In Guacamole, open the **"Apache Redirector (SSH)"** connection
-2. Press `Ctrl+Alt+Shift` to open the sidebar
-3. Click **Devices** and upload your `.ovpn` file. It will land in `~`
-4. Move it into the vpn directory:
+```yaml
+Step 1: In Guacamole, open the "Apache Redirector (SSH)" connection
+Step 2: Press Ctrl+Alt+Shift to open the sidebar
+Step 3: Click Devices > upload your .ovpn file (it lands in ~)
+Step 4: Move it into the vpn directory (command below)
+```
 
 ```bash
 mv ~/*.ovpn ~/vpn/
