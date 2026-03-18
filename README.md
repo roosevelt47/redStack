@@ -215,6 +215,12 @@ Least privilege adds meaningful protection when credentials could expose things 
 
 **Option B: Least Privilege (only if you are deploying into a shared or production account)**
 
+Use this option if the AWS account running redStack also contains other workloads, active resources, or anything you cannot afford to lose or expose. In that context, scoping the credentials to only what redStack needs limits the blast radius if the access key is ever leaked or misused.
+
+The policy grants `ec2:*` for all Terraform operations, `sts:GetCallerIdentity` so Terraform can verify credentials at init, and four read-only IAM actions scoped to your own user so you can inspect your own permissions when troubleshooting. Nothing outside of EC2 and self-inspection is granted.
+
+If you are not sure which account type you have, go back and re-read the dedicated account recommendation at the top of this section. Setting up a separate account is a one-time five-minute task and removes the need for this option entirely.
+
 <details>
 <summary>How to create the IAM user and attach the least-privilege policy (click to expand)</summary>
 
