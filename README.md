@@ -277,17 +277,19 @@ If you are not sure which account type you have, go back and re-read the dedicat
 
 **Configure AWS CLI:**
 
+Running `aws configure` writes your credentials and preferences to `~/.aws/credentials` and `~/.aws/config`. This is how Terraform (and the AWS CLI) know which account to talk to and which region to deploy into. You only need to do this once per machine.
+
 ```bash
 aws configure
 ```
 
 <details>
-<summary>aws configure prompts</summary>
+<summary>What each prompt is asking for (click to expand)</summary>
 
-- **AWS Access Key ID** - from IAM Console → Users → Security credentials
-- **AWS Secret Access Key** - shown once when creating the access key
-- **Default region name** - `us-east-1` (or your preferred region)
-- **Default output format** - `json`
+- **AWS Access Key ID**: The access key you generated under **Security credentials** for your IAM user. Identifies which user is making requests.
+- **AWS Secret Access Key**: The secret shown once at key creation time. Acts as the password paired with the Access Key ID. If you did not save it, delete the key and create a new one.
+- **Default region name**: The AWS region where redStack will be deployed. Use `us-east-1` unless you have a specific reason to pick another. This must match the `aws_region` value in `terraform.tfvars`.
+- **Default output format**: Controls how the AWS CLI formats responses. Use `json`. Terraform does not use this setting but it makes CLI output readable when troubleshooting.
 
 </details>
 
