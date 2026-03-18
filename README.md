@@ -237,8 +237,7 @@ If you are not sure which account type you have, go back and re-read the dedicat
 
 </details>
 
-<details>
-<summary>Minimum IAM Policy (click to expand)</summary>
+**Minimum IAM Policy:**
 
 ```json
 {
@@ -265,8 +264,6 @@ If you are not sure which account type you have, go back and re-read the dedicat
   ]
 }
 ```
-
-</details>
 
 > [!NOTE]
 > **Why these permissions:**
