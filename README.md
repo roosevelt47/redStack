@@ -199,7 +199,7 @@ redStack provisions EC2, VPC, security group, Elastic IP, network interface, key
 Attach the `AdministratorAccess` managed policy. On a single-purpose throwaway account this carries minimal risk. Admin access scoped to an account with nothing else in it is effectively limited to this lab.
 
 <details>
-<summary>Steps (click to expand)</summary>
+<summary>How to create the IAM user and attach AdministratorAccess (click to expand)</summary>
 
 1. Go to **IAM Console** > **Users** > **Create user**
 2. Set a username (e.g., `redS-operator`)
@@ -214,7 +214,7 @@ Attach the `AdministratorAccess` managed policy. On a single-purpose throwaway a
 **Option B: Least Privilege (for shared or production accounts)**
 
 <details>
-<summary>Steps (click to expand)</summary>
+<summary>How to create the IAM user and attach the least-privilege policy (click to expand)</summary>
 
 1. Go to **IAM Console** > **Users** > **Create user**
 2. Set a username (e.g., `redS-operator`)
