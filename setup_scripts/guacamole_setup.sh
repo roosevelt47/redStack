@@ -142,6 +142,8 @@ server {
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers HIGH:!aNULL:!MD5;
 
+    client_max_body_size 0;
+
     location / {
         proxy_pass http://127.0.0.1:8080;
         proxy_buffering off;
@@ -150,6 +152,8 @@ server {
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection \$http_connection;
         proxy_cookie_path /guacamole/ /;
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
         access_log off;
     }
 }
