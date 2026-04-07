@@ -97,6 +97,8 @@ services:
       POSTGRESQL_DATABASE: guacamole_db
       POSTGRESQL_USER: guacamole_user
       POSTGRESQL_PASSWORD: $DB_PASSWORD
+    volumes:
+      - /drive:/drive
     depends_on:
       - guacd
       - postgres
