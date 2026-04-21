@@ -46,7 +46,8 @@ apt-get install -y \
     git \
     curl \
     ufw \
-    jq
+    jq \
+    python3-pip
 
 # Enable Docker
 systemctl enable docker
@@ -132,6 +133,10 @@ echo "[*] Restarting Mythic to load new components..."
 sleep 10
 ./mythic-cli start
 sleep 60
+
+# Install mythic-py for CLI-based payload building
+echo "[*] Installing mythic-py..."
+pip3 install mythic --break-system-packages
 
 # Extract admin password for logs
 MYTHIC_PASSWORD=$(grep MYTHIC_ADMIN_PASSWORD .env | cut -d'=' -f2)

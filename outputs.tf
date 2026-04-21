@@ -20,9 +20,11 @@ output "deployment_info" {
   +---------------------------------------------------------------------+
     Web UI:       https://${aws_network_interface.mythic.private_ip}:7443
     Private IP:   ${aws_network_interface.mythic.private_ip}
-    Username:     admin
-    Password:     ${nonsensitive(random_password.lab.result)}
+    SSH Username: admin
+    SSH Password: ${nonsensitive(random_password.lab.result)}
     SSH (int):    ssh admin@${aws_network_interface.mythic.private_ip}
+    UI Username:  mythic_admin
+    UI Password:  sudo grep MYTHIC_ADMIN_PASSWORD /opt/Mythic/.env | cut -d= -f2
     Operator:     Port 7443 (Web UI via Windows/Guacamole)
     Guacamole:    Mythic C2 Server (SSH)
 
