@@ -1,4 +1,5 @@
 # Sensitive files - DO NOT COMMIT
+deployment_info.txt
 terraform.tfvars
 *.pem
 *.key

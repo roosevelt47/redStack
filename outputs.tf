@@ -1,8 +1,7 @@
 # outputs.tf - Output values after deployment
 
-output "deployment_info" {
-  description = "Full deployment details for all lab instances"
-  value = <<-EOT
+locals {
+  deployment_info_content = <<-EOT
 
   +---------------------------------------------------------------------+
   | 1. GUACAMOLE ACCESS PORTAL                                          |
@@ -10,21 +9,23 @@ output "deployment_info" {
     URL:          https://${aws_eip.guacamole.public_ip}/guacamole
     Public IP:    ${aws_eip.guacamole.public_ip}
     Private IP:   ${aws_network_interface.guacamole.private_ip}
-    Username:     guacadmin
-    Password:     ${nonsensitive(random_password.lab.result)}
-    SSH (ext):    ssh -i ${var.ssh_key_name}.pem admin@${aws_eip.guacamole.public_ip}
-    SSH (int):    ssh admin@${aws_network_interface.guacamole.private_ip}
+    UI Username:  guacadmin
+    UI Password:  ${nonsensitive(random_password.lab.result)}
+    SSH Username: admin
+    SSH Password: ${nonsensitive(random_password.lab.result)}
+    SSH (external): ssh -i ${var.ssh_key_name}.pem admin@${aws_eip.guacamole.public_ip}
+    SSH (internal): ssh admin@${aws_network_interface.guacamole.private_ip}
 
   +---------------------------------------------------------------------+
   | 2. MYTHIC C2 TEAM SERVER (internal only)                            |
   +---------------------------------------------------------------------+
-    Web UI:       https://${aws_network_interface.mythic.private_ip}:7443
+    Web UI:       https://mythic:7443  (access via Windows/Guacamole)
     Private IP:   ${aws_network_interface.mythic.private_ip}
     SSH Username: admin
     SSH Password: ${nonsensitive(random_password.lab.result)}
-    SSH (int):    ssh admin@${aws_network_interface.mythic.private_ip}
+    SSH (internal): ssh admin@${aws_network_interface.mythic.private_ip}
     UI Username:  mythic_admin
-    UI Password:  sudo grep MYTHIC_ADMIN_PASSWORD /opt/Mythic/.env | cut -d= -f2
+    UI Password:  ${nonsensitive(random_password.lab.result)}
     Operator:     Port 7443 (Web UI via Windows/Guacamole)
     Guacamole:    Mythic C2 Server (SSH)
 
@@ -32,9 +33,9 @@ output "deployment_info" {
   | 3. SLIVER C2 SERVER (internal only)                                 |
   +---------------------------------------------------------------------+
     Private IP:   ${aws_network_interface.sliver.private_ip}
-    Username:     admin
-    Password:     ${nonsensitive(random_password.lab.result)}
-    SSH (int):    ssh admin@${aws_network_interface.sliver.private_ip}
+    SSH Username: admin
+    SSH Password: ${nonsensitive(random_password.lab.result)}
+    SSH (internal): ssh admin@${aws_network_interface.sliver.private_ip}
     Operator:     Port 31337 (gRPC multiplexer)
     Guacamole:    Sliver C2 Server (SSH)
 
@@ -42,11 +43,11 @@ output "deployment_info" {
   | 4. HAVOC C2 SERVER (internal only)                                  |
   +---------------------------------------------------------------------+
     Private IP:   ${aws_network_interface.havoc.private_ip}
-    Username:     admin
-    Password:     ${nonsensitive(random_password.lab.result)}
-    SSH (int):    ssh admin@${aws_network_interface.havoc.private_ip}
-    Op User:      operator
-    Op Password:  ${nonsensitive(random_password.lab.result)}
+    SSH Username: admin
+    SSH Password: ${nonsensitive(random_password.lab.result)}
+    SSH (internal): ssh admin@${aws_network_interface.havoc.private_ip}
+    Havoc User:   operator
+    Havoc Pass:   ${nonsensitive(random_password.lab.result)}
     Guacamole:    Havoc C2 Desktop (VNC) | Havoc C2 Server (SSH)
 
   +---------------------------------------------------------------------+
@@ -55,10 +56,10 @@ output "deployment_info" {
     Public IP:    ${aws_eip.redirector.public_ip}
     Private IP:   ${aws_network_interface.redirector.private_ip}
     Domain:       ${var.redirector_domain != "" ? var.redirector_domain : "c2.example.com"}
-    Username:     admin
-    Password:     ${nonsensitive(random_password.lab.result)}
-    SSH (ext):    ssh -i ${var.ssh_key_name}.pem admin@${aws_eip.redirector.public_ip}
-    SSH (int):    ssh admin@${aws_network_interface.redirector.private_ip}
+    SSH Username: admin
+    SSH Password: ${nonsensitive(random_password.lab.result)}
+    SSH (external): ssh -i ${var.ssh_key_name}.pem admin@${aws_eip.redirector.public_ip}
+    SSH (internal): ssh admin@${aws_network_interface.redirector.private_ip}
     C2 Header:    ${var.c2_header_name}: ${local.c2_header_value}
     URI Routing:  ${var.mythic_uri_prefix}/ -> Mythic
                   ${var.sliver_uri_prefix}/ -> Sliver
@@ -76,7 +77,7 @@ ${var.enable_external_vpn ? <<-VPNINFO
     VPN Service:  sudo systemctl {start|stop|status} ext-vpn    (on redirector)
     WG Status:    sudo wg show                                   (on redirector or guacamole)
 
-    NOTE: WireGuard is configured automatically at boot — no pre-deploy key setup needed.
+    NOTE: WireGuard is configured automatically at boot -- no pre-deploy key setup needed.
 
     Traffic path (internal -> CTF target):
       [Teamserver/WIN-OPERATOR]
@@ -108,23 +109,16 @@ VPNINFO
     Guacamole:    Windows Operator Workstation (RDP)
 
   EOT
-}
 
-output "network_architecture" {
-  description = "Network architecture diagram with actual IPs"
-  value = <<-EOT
+  network_architecture_content = <<-EOT
 
   +---------------------------------------------------------------------+
   |                     NETWORK ARCHITECTURE                            |
   +---------------------------------------------------------------------+
 
   VPC A - Team Server Infrastructure (${var.use_default_vpc ? "Default VPC" : var.vpc_cidr})
-    Mythic Team Server      ${aws_network_interface.mythic.private_ip} (internal only)
-    Sliver C2 Server        ${aws_network_interface.sliver.private_ip} (internal only)
-    Havoc C2 Server         ${aws_network_interface.havoc.private_ip} (internal only)
-    Guacamole Server        ${aws_eip.guacamole.public_ip} (public)
-    Windows Operator        ${aws_network_interface.windows.private_ip} (internal only)
-
+    Mythic Team Server      ${aws_network_interface.mythic.private_ip}    Sliver C2 Server        ${aws_network_interface.sliver.private_ip}    Havoc C2 Server         ${aws_network_interface.havoc.private_ip}    Guacamole Server        ${aws_eip.guacamole.public_ip} (public)
+    Windows Operator        ${aws_network_interface.windows.private_ip}
   VPC B - Redirector Infrastructure (${aws_vpc.redirector.cidr_block})
     Apache Redirector       ${aws_eip.redirector.public_ip} (public)
 
@@ -149,8 +143,23 @@ ${var.enable_external_vpn ? <<-VPNARCH
     [x] Double NAT: guacamole MASQUERADE on wg0 + redirector MASQUERADE on tun0
     [x] IP forwarding enabled on redirector and guacamole
     [x] redirect-gateway filtered on ext-vpn (preserves VPC peering + C2 connectivity)
-    [x] WireGuard keys generated on Guacamole at boot — no pre-deploy setup required
+    [x] WireGuard keys generated on Guacamole at boot -- no pre-deploy setup required
 VPNARCH
 : ""}
   EOT
+}
+
+output "deployment_info" {
+  description = "Full deployment details for all lab instances"
+  value       = local.deployment_info_content
+}
+
+output "network_architecture" {
+  description = "Network architecture diagram with actual IPs"
+  value       = local.network_architecture_content
+}
+
+resource "local_file" "deployment_info" {
+  filename = "${path.root}/deployment_info.txt"
+  content  = "${local.deployment_info_content}\n${local.network_architecture_content}"
 }
