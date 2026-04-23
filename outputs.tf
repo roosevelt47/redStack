@@ -116,34 +116,56 @@ VPNINFO
   |                     NETWORK ARCHITECTURE                            |
   +---------------------------------------------------------------------+
 
-  VPC A - Team Server Infrastructure (${var.use_default_vpc ? "Default VPC" : var.vpc_cidr})
-    Mythic Team Server      ${aws_network_interface.mythic.private_ip}    Sliver C2 Server        ${aws_network_interface.sliver.private_ip}    Havoc C2 Server         ${aws_network_interface.havoc.private_ip}    Guacamole Server        ${aws_eip.guacamole.public_ip} (public)
-    Windows Operator        ${aws_network_interface.windows.private_ip}
-  VPC B - Redirector Infrastructure (${aws_vpc.redirector.cidr_block})
-    Apache Redirector       ${aws_eip.redirector.public_ip} (public)
+  VPC A: Team Server Infrastructure (${var.use_default_vpc ? "Default VPC" : var.vpc_cidr})
+  +-------------------------+-------------------------------------------+
+  |  Mythic C2 Server       |  ${aws_network_interface.mythic.private_ip}
+  |  Sliver C2 Server       |  ${aws_network_interface.sliver.private_ip}
+  |  Havoc C2 Server        |  ${aws_network_interface.havoc.private_ip}
+  |  Guacamole              |  ${aws_network_interface.guacamole.private_ip} (priv)  /  ${aws_eip.guacamole.public_ip} (pub)
+  |  Windows Operator       |  ${aws_network_interface.windows.private_ip}
+  +-------------------------+-------------------------------------------+
+
+  VPC B: Redirector Infrastructure (${aws_vpc.redirector.cidr_block})
+  +-------------------------+-------------------------------------------+
+  |  Apache Redirector      |  ${aws_network_interface.redirector.private_ip} (priv)  /  ${aws_eip.redirector.public_ip} (pub)
+  +-------------------------+-------------------------------------------+
 
   VPC Peering: VPC A <-> VPC B
 
-  Traffic Flow (Header + URI Validation - ports 80/443):
-    [Target] -> ${var.mythic_uri_prefix}/  -> ${aws_eip.redirector.public_ip} -> ${aws_network_interface.mythic.private_ip} (Mythic)
-    [Target] -> ${var.sliver_uri_prefix}/  -> ${aws_eip.redirector.public_ip} -> ${aws_network_interface.sliver.private_ip} (Sliver)
-    [Target] -> ${var.havoc_uri_prefix}/   -> ${aws_eip.redirector.public_ip} -> ${aws_network_interface.havoc.private_ip} (Havoc)
-    Required:   ${var.c2_header_name}: ${local.c2_header_value}
-    No header:  Decoy page (CloudEdge CDN maintenance)
+  C2 Traffic Flow  (ports 80/443 - header + URI validation):
+
+    [Target]
+       |
+       v  HTTPS / HTTP
+    ${aws_eip.redirector.public_ip}  (Apache Redirector)
+       |
+       |  Required:  ${var.c2_header_name}: ${local.c2_header_value}
+       |
+       +--  ${format("%-25s", format("%s/", var.mythic_uri_prefix))}-->  ${format("%-15s", aws_network_interface.mythic.private_ip)}  (Mythic)
+       +--  ${format("%-25s", format("%s/", var.sliver_uri_prefix))}-->  ${format("%-15s", aws_network_interface.sliver.private_ip)}  (Sliver)
+       +--  ${format("%-25s", format("%s/", var.havoc_uri_prefix))}-->  ${format("%-15s", aws_network_interface.havoc.private_ip)}  (Havoc)
+       +--  ${format("%-25s", "[no valid header]")}-->  Decoy page (CloudEdge CDN)
 
 ${var.enable_external_vpn ? <<-VPNARCH
 
-  External VPN Routing (HTB/VL/PG):
-    [Internal Machine] -> Guacamole (wg0: 10.100.0.2) -> WireGuard (UDP 51820)
-                      -> Redirector (wg0: 10.100.0.1) -> tun0 (OpenVPN) -> [CTF Targets]
-    Routed CIDRs: ${join(", ", var.external_vpn_cidrs)}
+  External VPN Routing (HTB / VL / PG via OpenVPN + WireGuard):
+  +-------------------------+-------------------------------------------+
+  |  WG Server (redirector) |  wg0: 10.100.0.1
+  |  WG Client (guacamole)  |  wg0: 10.100.0.2
+  |  Routed CIDRs           |  ${join(", ", var.external_vpn_cidrs)}
+  +-------------------------+-------------------------------------------+
 
-  VPN Security:
-    [x] source_dest_check disabled on redirector + guacamole ENIs (packet forwarding)
-    [x] Double NAT: guacamole MASQUERADE on wg0 + redirector MASQUERADE on tun0
-    [x] IP forwarding enabled on redirector and guacamole
-    [x] redirect-gateway filtered on ext-vpn (preserves VPC peering + C2 connectivity)
-    [x] WireGuard keys generated on Guacamole at boot -- no pre-deploy setup required
+    [Internal Machine]
+       |
+       v  VPC route (ExtVPN CIDRs) -> guacamole ENI
+    Guacamole  (wg0: 10.100.0.2, MASQUERADE)
+       |
+       v  WireGuard tunnel (UDP 51820)
+    Redirector  (wg0: 10.100.0.1)
+       |
+       v  tun0 (OpenVPN, MASQUERADE)
+    [CTF Target]
+
 VPNARCH
 : ""}
   EOT
