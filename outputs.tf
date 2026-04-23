@@ -19,7 +19,7 @@ locals {
   +---------------------------------------------------------------------+
   | 2. MYTHIC C2 TEAM SERVER                                            |
   +---------------------------------------------------------------------+
-    Web UI:       https://mythic:7443  (access via Windows/Guacamole)
+    Web UI:       https://mythic:7443  (access via WinOp workstation)
     Private IP:   ${aws_network_interface.mythic.private_ip}
     SSH Username: admin
     SSH Password: ${nonsensitive(random_password.lab.result)}
