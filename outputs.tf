@@ -17,7 +17,7 @@ locals {
     SSH (internal): ssh admin@${aws_network_interface.guacamole.private_ip}
 
   +---------------------------------------------------------------------+
-  | 2. MYTHIC C2 TEAM SERVER (internal only)                            |
+  | 2. MYTHIC C2 TEAM SERVER                                            |
   +---------------------------------------------------------------------+
     Web UI:       https://mythic:7443  (access via Windows/Guacamole)
     Private IP:   ${aws_network_interface.mythic.private_ip}
@@ -30,7 +30,7 @@ locals {
     Guacamole:    Mythic C2 Server (SSH)
 
   +---------------------------------------------------------------------+
-  | 3. SLIVER C2 SERVER (internal only)                                 |
+  | 3. SLIVER C2 SERVER                                                 |
   +---------------------------------------------------------------------+
     Private IP:   ${aws_network_interface.sliver.private_ip}
     SSH Username: admin
@@ -40,7 +40,7 @@ locals {
     Guacamole:    Sliver C2 Server (SSH)
 
   +---------------------------------------------------------------------+
-  | 4. HAVOC C2 SERVER (internal only)                                  |
+  | 4. HAVOC C2 SERVER                                                  |
   +---------------------------------------------------------------------+
     Private IP:   ${aws_network_interface.havoc.private_ip}
     SSH Username: admin
