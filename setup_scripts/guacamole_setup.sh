@@ -240,7 +240,9 @@ if [ -n "$TOKEN" ]; then
                 "drive-path": "/drive",
                 "create-drive-path": "true",
                 console: "true",
-                "server-layout": "en-us-qwerty"
+                "server-layout": "en-us-qwerty",
+                width: "1920",
+                height: "1080"
             },
             attributes: {
                 "max-connections": "2",
@@ -369,7 +371,9 @@ if [ -n "$TOKEN" ]; then
                 \"hostname\": \"$HAVOC_PRIVATE_IP\",
                 \"port\": \"5901\",
                 \"password\": \"$SSH_PASSWORD\",
-                \"color-depth\": \"24\"
+                \"color-depth\": \"24\",
+                \"width\": \"1920\",
+                \"height\": \"1080\"
             },
             \"attributes\": {
                 \"max-connections\": \"2\",
