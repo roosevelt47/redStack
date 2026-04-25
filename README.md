@@ -515,7 +515,7 @@ ssh_private_key_path = "./rs-rsa-key.pem"     # Path to your .pem file (for Wind
 > ```
 >
 > **Closed environment** (HTB/VL/PG Pro Labs, OpenVPN-only, no public DNS):
-> Leave `redirector_domain` empty and set the two ExtVPN toggles below. The redirector uses its public Elastic IP as the server identity with a self-signed certificate. Scanner/AV blocking is disabled since it is not needed in lab environments. Skip Step 1.6 and Step 3.1. See Part 8 for the full ExtVPN deployment workflow.
+> Leave `redirector_domain` empty and turn on the two external-VPN toggles below. The redirector uses its public Elastic IP as the server identity with a self-signed certificate. Scanner/AV blocking is disabled since it is not needed in isolated lab networks. Skip Step 1.6 and Step 3.1. See [Part 8](#part-8-external-target-environments-htbvlpg) for the full external-VPN deployment workflow.
 >
 > ```hcl
 > # redirector_domain = ""                    # leave empty; redirector uses its public IP
@@ -544,10 +544,12 @@ mythic_uri_prefix = "/cdn/media/stream"
 sliver_uri_prefix = "/cloud/storage/objects"
 havoc_uri_prefix  = "/edge/cache/assets"
 
-# --- ExtVPN/Pro Lab mode (HTB/VL/PG via OpenVPN) ---
-# Default is open-environment (public domain + htaccess on). Only change these for ExtVPN/Pro Lab use.
-enable_external_vpn                  = false  # Set to true for HTB/VL/PG. Enables OpenVPN client + VPC routing (see Part 8)
-enable_redirector_htaccess_filtering = true   # Set to false for HTB/VL/PG. Scanner/AV blocking not needed in lab environments
+# --- External VPN routing for HTB / VulnLab / Proving Grounds Pro Labs ---
+# Default redStack runs on the public internet (public domain + htaccess on).
+# Toggle these only when internal lab machines need to reach Pro Lab targets
+# through the redirector's OpenVPN tunnel. See Part 8 for the full flow.
+enable_external_vpn                  = false  # true: OpenVPN client on redirector + WireGuard tunnel from C2 VPC
+enable_redirector_htaccess_filtering = true   # false for HTB/VL/PG: scanner/AV blocking is not useful in isolated lab networks
 
 # C2 header validation is always enabled. These override the defaults:
 # c2_header_name  = "X-Request-ID"  # Header name (default: X-Request-ID)

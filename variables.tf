@@ -104,13 +104,13 @@ variable "enable_redirector_htaccess_filtering" {
 }
 
 variable "enable_external_vpn" {
-  description = "Enable OpenVPN client on redirector for external platform access (HTB/VL/PG)"
+  description = "External VPN routing: OpenVPN client on redirector + WireGuard tunnel from C2 VPC, so internal lab machines can reach HTB/VulnLab/Proving Grounds Pro Lab targets. Leave false for normal public-internet operation."
   type        = bool
   default     = false
 }
 
 variable "external_vpn_cidrs" {
-  description = "CIDR blocks routable through the redirector's VPN tunnel (e.g., HTB/VL/PG target ranges)"
+  description = "Target subnets reachable through the external VPN tunnel (HTB/VL/PG ranges). Default covers the standard HTB tunnel; pro labs typically need 10.13.0.0/16 and 10.129.0.0/16 added."
   type        = list(string)
   default     = ["10.10.0.0/16"]
 }

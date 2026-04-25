@@ -56,11 +56,13 @@ havoc_uri_prefix  = "/edge/cache/assets"
 # c2_header_name  = "X-Request-ID"  # Header name (default: X-Request-ID)
 # c2_header_value = ""              # Token value — leave empty to auto-generate (recommended)
 
-# --- CTF/Pro Lab mode (HTB/VL/PG via OpenVPN) ---
-# Default is open-environment (public domain + htaccess on). Only change these for CTF/Pro Lab use.
-enable_external_vpn                  = false  # Set to true for HTB/VL/PG — enables OpenVPN client + VPC routing (see Part 8)
-enable_redirector_htaccess_filtering = true   # Set to false for HTB/VL/PG — scanner/AV blocking not needed in lab environments
-# external_vpn_cidrs = ["10.10.0.0/16"]  # CIDR blocks reachable through the VPN tunnel (default covers most HTB/VL/PG ranges)
+# --- External VPN routing for HTB / VulnLab / Proving Grounds Pro Labs ---
+# Default redStack runs on the public internet (public domain + htaccess on).
+# Toggle this only when you need internal lab machines to reach Pro Lab
+# targets through the redirector's OpenVPN tunnel. See Part 8 for the full flow.
+enable_external_vpn                  = false  # true: OpenVPN client on redirector + WireGuard tunnel from C2 VPC
+enable_redirector_htaccess_filtering = true   # false for HTB/VL/PG: scanner/AV blocking is not useful in isolated lab networks
+# external_vpn_cidrs = ["10.10.0.0/16"]  # Target subnets reachable through the tunnel (HTB tunnel default; pro labs usually also need 10.13.0.0/16 and 10.129.0.0/16)
 
 
 # Optional: Custom tags applied to every AWS resource (instances, SGs, EIPs, etc.)
