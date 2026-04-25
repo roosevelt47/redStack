@@ -96,29 +96,37 @@ tags = {
 #
 # 3. Estimated monthly cost (us-east-1, on-demand pricing):
 #
-#    Realistic study workload: 5-10 hrs/week active use, instances STOPPED
-#    the rest of the time, light bandwidth (within 100 GB/mo free tier).
+#    Hourly compute mix (Windows AMI bundles license into the rate):
+#      2x Linux  t3.medium  (Mythic, Havoc):            $0.0416/hr each
+#      3x Linux  t3.small   (Guac, Sliver, Redirector): $0.0208/hr each
+#      1x Windows t3.medium (WIN-OPERATOR):             $0.0608/hr
+#      Combined: ~$0.21/hr
 #
-#    Compute (only billed while running):
-#      3x t3.medium ($0.0416/hr) + 3x t3.small ($0.0208/hr) = ~$0.19/hr
-#        5  hrs/week (~22 hrs/mo):  ~$4/mo
-#        10 hrs/week (~43 hrs/mo):  ~$8/mo
+#    RECOMMENDED: 5-10 hrs/week study + `terraform destroy` between sessions.
+#    Pay only for compute hours actively used. No idle EBS or EIP charges.
+#      5  hrs/week (~22 hrs/mo): ~$5/mo
+#      10 hrs/week (~43 hrs/mo): ~$9/mo
 #
-#    EBS gp3 storage (billed 24/7, even when instances are stopped):
-#      175 GB total across 6 instances x $0.08/GB-mo  = ~$14/mo
+#    Tradeoff: each redeploy adds ~30-45 min of setup before the lab is
+#    ready (terraform apply + cloud-init + Windows boot + Havoc rebuild
+#    from source). In open mode, DNS A records must be re-pointed to the
+#    new redirector EIP each redeploy. Mythic/Sliver/Havoc state is
+#    destroyed; for training that is usually the point.
 #
-#    Elastic IPs (2x: Guacamole + Redirector, billed 24/7):
-#      2 x $0.005/hr x 730 hrs                        = ~$7/mo
+#    ALTERNATIVE: stop (don't destroy) between sessions. Preserves state
+#    and skips rebuilds (~5-10 min boot to resume), but EBS volumes
+#    (~$14/mo) and Elastic IPs (~$7/mo) bill 24/7 even when stopped.
+#      5  hrs/week + stopped between: ~$26/mo
+#      10 hrs/week + stopped between: ~$30/mo
 #
-#    Data transfer: first 100 GB/mo outbound is free, light study use is ~$0
+#    REFERENCE (all instances running 24/7):
+#      Compute ~$151/mo + storage/EIPs ~$21/mo = ~$172/mo
 #
-#    Total realistic estimate: ~$25-30/month
+#    Data transfer: first 100 GB/mo outbound free, light study use ~$0
 #
-#    Reference (all 6 instances running 24/7): ~$135/mo compute + $21 storage/EIP = ~$156/mo
-#
-# 4. To reduce costs:
-#    - Stop instances when not in use (compute charges pause, EBS + EIP continue)
-#    - Use smaller instance types for demo/short labs
-#    - Destroy infrastructure to eliminate ALL charges: terraform destroy
+# 4. To reduce costs (in priority order):
+#    - Default: `terraform destroy` after each session, `terraform apply` next time
+#    - Or: stop instances when not in use (preserves state, ~$21/mo idle)
+#    - Use smaller instance types for short demos
 #    - Set a CloudWatch billing alarm in the AWS Billing Console
 #

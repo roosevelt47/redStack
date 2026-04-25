@@ -23,7 +23,7 @@
 
 **Time to ready:** ~10 to 15 min `terraform apply` + ~5 to 10 min cloud-init, plus a one-time SSL cert and Havoc build on first deploy.
 
-**Cost:** ~$25 to $30/mo for 5 to 10 hrs/wk of study (instances stopped between sessions). ~$156/mo if left running 24/7. Full breakdown in [Cost Management](#cost-management).
+**Cost:** ~$5 to $9/mo for 5 to 10 hrs/wk of study with `terraform destroy` between sessions (recommended). ~$26 to $30/mo if you stop but do not destroy between sessions. ~$172/mo if left running 24/7. Full breakdown in [Cost Management](#cost-management).
 
 **Pick a mode** (full decision tree in [Deployment Modes](#deployment-modes)):
 
@@ -567,12 +567,12 @@ The [AWS EC2 Dashboard](https://console.aws.amazon.com/ec2/home) is your primary
 >
 > Running EC2 instances accrue charges 24/7 whether you are actively using them or not. Forgetting about a deployed lab is one of the most common causes of unexpected AWS bills. A few things to keep in mind:
 >
-> - **Shut down the lab when not in use.** Stop all instances from the EC2 Dashboard (select all > Instance State > Stop) to pause compute charges without destroying the environment.
-> - **Stopped instances still cost money.** EBS volumes (~$14/mo) and Elastic IPs (~$7/mo) bill 24/7 even when instances are stopped. Roughly $21/mo for a full deployment sitting idle.
-> - **The only way to eliminate all charges is `terraform destroy`.** This terminates instances, releases Elastic IPs, and removes all billable resources. Do this when you are done with a training session and do not need to preserve state.
+> - **Recommended pattern: `terraform destroy` after each study session.** For a 5 to 10 hrs/wk study cadence, destroying between sessions costs ~$5 to $9/mo (compute only) versus ~$26 to $30/mo for a stopped-but-not-destroyed lab. Redeploy in ~30 to 45 min next time.
+> - **Stopping instances does not eliminate charges.** EBS volumes (~$14/mo) and Elastic IPs (~$7/mo) bill 24/7 even when instances are stopped. That is ~$21/mo of fixed cost for a paused deployment.
+> - **`terraform destroy` is the only way to zero out charges.** It terminates instances, releases Elastic IPs, and removes EBS volumes.
 > - **Set a billing alarm.** In the [AWS Billing Console](https://console.aws.amazon.com/billing/home), create a CloudWatch billing alarm to alert you if monthly charges exceed a threshold you set. This is the best safeguard against runaway costs from forgotten resources.
 >
-> See [Cost Management](#cost-management) below for the full breakdown of expected charges across realistic study and 24/7 reference scenarios.
+> See [Cost Management](#cost-management) below for the full breakdown across destroy/redeploy, stopped, and 24/7 scenarios.
 
 ### Step 1.2: Initialize Terraform
 
@@ -1884,29 +1884,72 @@ aws ec2 describe-instances --filters "Name=tag:Project,Values=redstack"
 
 ### Cost Management
 
-#### Estimated Monthly Cost
+All numbers below are for `us-east-1` on-demand pricing with the default redStack instance mix (2x Linux `t3.medium`, 3x Linux `t3.small`, 1x Windows `t3.medium`).
 
-The numbers below are for `us-east-1` on-demand pricing with the default redStack instance sizes (3x `t3.medium`, 3x `t3.small`).
+#### Recommended: Destroy Between Sessions
 
-**Realistic study workload:** 5 to 10 hours/week of active use, instances **stopped** the rest of the time, light bandwidth (within the 100 GB/month outbound free tier).
+For a 5 to 10 hrs/wk study cadence, the cheapest pattern is to run `terraform destroy` at the end of each session and `terraform apply` again next time. You pay only for the hours the lab is actually running. No idle EBS, no idle Elastic IPs, no licensed Windows volume sitting around.
+
+**Hourly compute mix:**
+
+| Instance | Rate | Count | Subtotal |
+| --- | --- | --- | --- |
+| Linux `t3.medium` (Mythic, Havoc) | $0.0416/hr | 2 | $0.0832 |
+| Linux `t3.small` (Guacamole, Sliver, Redirector) | $0.0208/hr | 3 | $0.0624 |
+| Windows `t3.medium` (WIN-OPERATOR, license included) | $0.0608/hr | 1 | $0.0608 |
+| **Total** | | | **~$0.21/hr** |
+
+**Monthly cost at this cadence:**
+
+| Hours/week | Hours/month | Compute | EBS + EIPs (no idle) | **Total** |
+| --- | --- | --- | --- | --- |
+| 5 hrs/wk | ~22 hrs | ~$5 | $0 | **~$5/mo** |
+| 10 hrs/wk | ~43 hrs | ~$9 | $0 | **~$9/mo** |
+
+**Tradeoffs to know about:**
+
+- **First-time setup per redeploy is ~30 to 45 min** before the lab is ready to use: `terraform apply` (~10 min) + cloud-init (~5 to 10 min) + Windows initialization (up to ~15 min) + Havoc rebuild from source (~15 to 25 min, only on first deploy or if you redeploy from scratch).
+- **DNS A records change** each redeploy in open mode (the redirector EIP is new each time). Update your registrar after every `apply`. With a short DNS TTL this propagates in minutes.
+- **Let's Encrypt** has a 5 duplicate-cert-per-week limit per registered domain. Two to three sessions per week is fine. If you redeploy more often, switch to a staging cert during testing or use the closed-environment self-signed flow.
+- **In-progress C2 state is destroyed** with the lab. Mythic callbacks, Sliver implants, Havoc demons, custom listener configs are all gone. For training that is usually the point. For longer engagements, use the stopped pattern below.
+
+#### Alternative: Stop Between Sessions
+
+Faster to resume (~5 to 10 min instance boot vs ~30 to 45 min full redeploy) and preserves all C2 state, at the cost of ~$21/mo of always-on storage and Elastic IPs.
+
+| Hours/week | Compute | EBS + EIPs (always on) | **Total** |
+| --- | --- | --- | --- |
+| 5 hrs/wk | ~$5 | $21 | **~$26/mo** |
+| 10 hrs/wk | ~$9 | $21 | **~$30/mo** |
+
+The fixed $21/mo is roughly $14 EBS gp3 (175 GB total across 6 volumes) + $7 for the 2 Elastic IPs (Guacamole and redirector, billed 24/7 since the 2024 pricing change).
+
+#### Reference: Always On
 
 | Item | Calculation | Cost |
 | --- | --- | --- |
-| Compute (5 hrs/wk active) | ~22 hrs/mo x ~$0.19/hr | ~$4/mo |
-| Compute (10 hrs/wk active) | ~43 hrs/mo x ~$0.19/hr | ~$8/mo |
-| EBS gp3 storage (24/7) | 175 GB total x $0.08/GB-mo | ~$14/mo |
-| Elastic IPs (2x, 24/7) | 2 x $0.005/hr x 730 hrs | ~$7/mo |
-| Data transfer (light use) | First 100 GB outbound free | ~$0 |
-| **Total realistic estimate** | | **~$25 to $30/mo** |
+| Compute, all instances 24/7 | 730 hrs x $0.2064/hr | ~$151/mo |
+| EBS gp3 storage | 175 GB x $0.08/GB-mo | ~$14/mo |
+| Elastic IPs | 2 x $0.005/hr x 730 hrs | ~$7/mo |
+| **Total** | | **~$172/mo** |
 
-**Reference, all instances running 24/7:** ~$135/mo compute + ~$21/mo storage and Elastic IPs = **~$156/mo**
+Data transfer is excluded from all three scenarios because the first 100 GB/mo of outbound traffic is free and light study use does not exceed it.
 
 > [!IMPORTANT]
 > EBS volumes and Elastic IPs bill 24/7 even when instances are stopped. Stopping pauses compute charges only. The only way to eliminate all charges is `terraform destroy`.
 
-#### Stop Instances Between Sessions
+#### How to Run Each Pattern
 
-**Via AWS Console:**
+**Destroy after each session (recommended):**
+
+```bash
+terraform destroy
+# Type 'yes' to confirm
+```
+
+Next session, redeploy with `terraform apply`. Update your DNS A records to the new redirector EIP and re-run Certbot in open mode.
+
+**Stop instances (alternative, preserves state):**
 
 ```yaml
 Step 1: AWS Console > EC2 > Instances
@@ -1914,7 +1957,7 @@ Step 2: Select all redStack instances
 Step 3: Instance State > Stop
 ```
 
-**Via AWS CLI** (get instance IDs from AWS Console or `aws ec2 describe-instances`):
+Or via AWS CLI (get instance IDs from `aws ec2 describe-instances`):
 
 ```bash
 aws ec2 stop-instances --instance-ids i-xxxxx i-yyyyy i-zzzzz
