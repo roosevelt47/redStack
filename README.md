@@ -483,10 +483,12 @@ The [AWS EC2 Dashboard](https://console.aws.amazon.com/ec2/home) is your primary
 >
 > Running EC2 instances accrue charges 24/7 whether you are actively using them or not. Forgetting about a deployed lab is one of the most common causes of unexpected AWS bills. A few things to keep in mind:
 >
-> - **Shut down the lab when not in use.** You can stop all instances from the EC2 Dashboard (select all → Instance State → Stop) to pause compute charges without destroying the environment.
-> - **Stopped instances still cost money.** EBS storage volumes attached to stopped instances continue to incur charges. For a full redStack deployment this is typically small, but it adds up over time.
+> - **Shut down the lab when not in use.** Stop all instances from the EC2 Dashboard (select all > Instance State > Stop) to pause compute charges without destroying the environment.
+> - **Stopped instances still cost money.** EBS volumes (~$14/mo) and Elastic IPs (~$7/mo) bill 24/7 even when instances are stopped. Roughly $21/mo for a full deployment sitting idle.
 > - **The only way to eliminate all charges is `terraform destroy`.** This terminates instances, releases Elastic IPs, and removes all billable resources. Do this when you are done with a training session and do not need to preserve state.
 > - **Set a billing alarm.** In the [AWS Billing Console](https://console.aws.amazon.com/billing/home), create a CloudWatch billing alarm to alert you if monthly charges exceed a threshold you set. This is the best safeguard against runaway costs from forgotten resources.
+>
+> See [Cost Management](#cost-management) below for the full breakdown of expected charges across realistic study and 24/7 reference scenarios.
 
 ### Step 1.2: Initialize Terraform
 
@@ -1796,7 +1798,29 @@ aws ec2 describe-instances --filters "Name=tag:Project,Values=redstack"
 
 ### Cost Management
 
-**Stop instances when not in use via AWS Console:**
+#### Estimated Monthly Cost
+
+The numbers below are for `us-east-1` on-demand pricing with the default redStack instance sizes (3x `t3.medium`, 3x `t3.small`).
+
+**Realistic study workload:** 5 to 10 hours/week of active use, instances **stopped** the rest of the time, light bandwidth (within the 100 GB/month outbound free tier).
+
+| Item | Calculation | Cost |
+| --- | --- | --- |
+| Compute (5 hrs/wk active) | ~22 hrs/mo x ~$0.19/hr | ~$4/mo |
+| Compute (10 hrs/wk active) | ~43 hrs/mo x ~$0.19/hr | ~$8/mo |
+| EBS gp3 storage (24/7) | 175 GB total x $0.08/GB-mo | ~$14/mo |
+| Elastic IPs (2x, 24/7) | 2 x $0.005/hr x 730 hrs | ~$7/mo |
+| Data transfer (light use) | First 100 GB outbound free | ~$0 |
+| **Total realistic estimate** | | **~$25 to $30/mo** |
+
+**Reference, all instances running 24/7:** ~$135/mo compute + ~$21/mo storage and Elastic IPs = **~$156/mo**
+
+> [!IMPORTANT]
+> EBS volumes and Elastic IPs bill 24/7 even when instances are stopped. Stopping pauses compute charges only. The only way to eliminate all charges is `terraform destroy`.
+
+#### Stop Instances Between Sessions
+
+**Via AWS Console:**
 
 ```yaml
 Step 1: AWS Console > EC2 > Instances
@@ -1804,7 +1828,7 @@ Step 2: Select all redStack instances
 Step 3: Instance State > Stop
 ```
 
-**Or via AWS CLI** (get instance IDs from AWS Console or `aws ec2 describe-instances`):
+**Via AWS CLI** (get instance IDs from AWS Console or `aws ec2 describe-instances`):
 
 ```bash
 aws ec2 stop-instances --instance-ids i-xxxxx i-yyyyy i-zzzzz
