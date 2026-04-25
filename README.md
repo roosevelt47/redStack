@@ -47,6 +47,7 @@
 - [Quick Start](#quick-start)
 - [Architecture Overview](#architecture-overview)
 - [Lab Inventory](#lab-inventory)
+- [SSH Access](#ssh-access)
 - [Deployment Modes](#deployment-modes)
 - [Timing Expectations](#timing-expectations)
 - [Part 0: Pre-Deployment Checklist](#part-0-pre-deployment-checklist)
@@ -188,6 +189,50 @@ Six instances are deployed by default. Only the Guacamole portal and the Apache 
 | `WIN-OPERATOR` | Windows operator workstation | No | Guacamole > Windows Operator (RDP) | AWS-decrypted, shown in `terraform output deployment_info` |
 
 **One command for everything:** `terraform output deployment_info` prints all IPs, the auto-generated lab password, the Windows Administrator password, and the C2 header token. Save it once after deploy.
+
+---
+
+## SSH Access
+
+Two facts make the access pattern simple:
+
+1. The same `rs-rsa-key.pem` (the AWS key pair) is authorized on every Linux instance.
+2. sshd on each Linux host is configured `PasswordAuthentication no` for public sources, but flips to `yes` for source addresses inside `172.16.0.0/12` or `10.0.0.0/8` (the lab's private space). See [redirector_userdata.sh:39-48](setup_scripts/redirector_userdata.sh#L39-L48) for the canonical config.
+
+So from your host workstation (a public source), you must use the key. From a shell already inside the lab (a private source), the auto-generated lab password works too.
+
+> [!IMPORTANT]
+> Only Guacamole's public EIP exposes port 22. The redirector's EIP exposes 80 and 443 only. C2 servers and the Windows workstation have no public IP. Every SSH session into the lab must enter through Guacamole.
+
+**Easiest: Guacamole web portal.** The "Apache Redirector (SSH)", "Mythic C2 Server (SSH)", "Sliver C2 Server (SSH)", and "Havoc C2 Server (SSH)" tiles are pre-configured with the lab password. No manual auth.
+
+**SSH directly to Guacamole (the bastion):**
+
+```bash
+ssh -i rs-rsa-key.pem admin@<GUAC_PUBLIC_IP>
+```
+
+**Jump from your host to any internal box in one command** (hostname is resolved on guac via `/etc/hosts`):
+
+```bash
+ssh -i rs-rsa-key.pem -J admin@<GUAC_PUBLIC_IP> admin@redirector
+ssh -i rs-rsa-key.pem -J admin@<GUAC_PUBLIC_IP> admin@mythic
+ssh -i rs-rsa-key.pem -J admin@<GUAC_PUBLIC_IP> admin@sliver
+ssh -i rs-rsa-key.pem -J admin@<GUAC_PUBLIC_IP> admin@havoc
+```
+
+The same `-i` key satisfies both hops because it is authorized on every box. No password prompts.
+
+**From a shell already on guac, hop directly to any internal host:**
+
+```bash
+admin@guac:~$ ssh admin@redirector    # private source, password or key both work
+admin@guac:~$ ssh admin@mythic
+admin@guac:~$ ssh admin@sliver
+admin@guac:~$ ssh admin@havoc
+```
+
+`/etc/hosts` on every Linux host maps every other lab hostname to its private IP, so `admin@<hostname>` resolves correctly. Use `<HOST_PRIVATE_IP>` instead if you prefer.
 
 ---
 
@@ -792,7 +837,7 @@ This section covers the one manual step required after deployment (SSL certifica
 Once DNS has propagated (Step 1.6), SSH to the redirector and run Certbot.
 
 > [!NOTE]
-> The redirector's public Elastic IP exposes only ports 80 and 443. Port 22 is closed on the public face to keep the public attack surface limited to legitimate C2 callback traffic. SSH access is internal only, via Guacamole or a jump through Guacamole.
+> The redirector's public Elastic IP exposes only ports 80 and 443. Port 22 is closed on the public face to keep the public attack surface limited to legitimate C2 callback traffic. SSH access is internal only, via Guacamole or a jump through Guacamole. See [SSH Access](#ssh-access) for the full access pattern across all hosts.
 
 **Three ways to get a shell on the redirector (pick one):**
 
@@ -800,9 +845,9 @@ Once DNS has propagated (Step 1.6), SSH to the redirector and run Certbot.
 | ------ | --- |
 | Via Guacamole (recommended) | Click **"Apache Redirector (SSH)"** in the Guacamole portal |
 | From Windows workstation | Open MobaXterm > **redStack Lab** > **Apache Redirector (SSH)** |
-| From your host workstation | Jump through Guacamole: `ssh -J admin@<GUAC_PUBLIC_IP> admin@<REDIR_PRIVATE_IP>` |
+| From your host workstation | `ssh -i rs-rsa-key.pem -J admin@<GUAC_PUBLIC_IP> admin@redirector` |
 
-The host-workstation jump uses Guacamole as the bastion. Pick up the Guacamole public IP and the redirector private IP from `terraform output deployment_info`. Password auth works (no `.pem` needed) using the auto-generated lab password.
+The host-workstation form uses Guacamole as the bastion and reuses your `rs-rsa-key.pem` for both hops, so no password prompts. The `redirector` hostname is resolved on guac via `/etc/hosts`. Pick up the Guacamole public IP from `terraform output deployment_info`.
 
 <details>
 <summary>What is Certbot?</summary>
