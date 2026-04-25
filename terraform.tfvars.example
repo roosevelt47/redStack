@@ -7,7 +7,7 @@
 
 # Your public IP for SSH access (find with: curl ifconfig.me)
 # Must be in CIDR format with /32 suffix
-localPub_ip = "108.51.27.140/32"
+localPub_ip = "x.x.x.x/32"
 
 # Name of your existing AWS SSH key pair
 # Must already exist in AWS EC2 Console > Key Pairs
@@ -18,7 +18,7 @@ ssh_private_key_path = "./rs-rsa-key.pem"
 
 # Your redirector domain — apex or subdomain (e.g. c2.yourdomain.com)
 # Point this domain's A record to the Redirector Elastic IP after deployment
-redirector_domain = "newflavorstudio.com"
+redirector_domain = "exampledomain.com"
 
 # ============================================================================
 # OPTIONAL VARIABLES - Customize as needed
@@ -94,13 +94,31 @@ tags = {
 #    Windows (PowerShell):
 #      icacls .\rs-rsa-key.pem /inheritance:r /grant:r "$($env:USERNAME):(R)"
 #
-# 3. Estimated monthly cost (all instances running 24/7):
-#    - t3.medium (3x): ~$90/month
-#    - t3.small  (3x): ~$45/month
-#    Total: ~$135/month + data transfer
+# 3. Estimated monthly cost (us-east-1, on-demand pricing):
+#
+#    Realistic study workload: 5-10 hrs/week active use, instances STOPPED
+#    the rest of the time, light bandwidth (within 100 GB/mo free tier).
+#
+#    Compute (only billed while running):
+#      3x t3.medium ($0.0416/hr) + 3x t3.small ($0.0208/hr) = ~$0.19/hr
+#        5  hrs/week (~22 hrs/mo):  ~$4/mo
+#        10 hrs/week (~43 hrs/mo):  ~$8/mo
+#
+#    EBS gp3 storage (billed 24/7, even when instances are stopped):
+#      175 GB total across 6 instances x $0.08/GB-mo  = ~$14/mo
+#
+#    Elastic IPs (2x: Guacamole + Redirector, billed 24/7):
+#      2 x $0.005/hr x 730 hrs                        = ~$7/mo
+#
+#    Data transfer: first 100 GB/mo outbound is free, light study use is ~$0
+#
+#    Total realistic estimate: ~$25-30/month
+#
+#    Reference (all 6 instances running 24/7): ~$135/mo compute + $21 storage/EIP = ~$156/mo
 #
 # 4. To reduce costs:
-#    - Stop instances when not in use
+#    - Stop instances when not in use (compute charges pause, EBS + EIP continue)
 #    - Use smaller instance types for demo/short labs
-#    - Destroy infrastructure when done with: terraform destroy
+#    - Destroy infrastructure to eliminate ALL charges: terraform destroy
+#    - Set a CloudWatch billing alarm in the AWS Billing Console
 #
