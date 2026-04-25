@@ -125,16 +125,11 @@ resource "aws_security_group" "redirector" {
   }
 }
 
-# SSH from instructor only
-resource "aws_security_group_rule" "redirector_ssh" {
-  type              = "ingress"
-  from_port         = 22
-  to_port           = 22
-  protocol          = "tcp"
-  cidr_blocks       = [var.localPub_ip]
-  description       = "SSH access for instructor management"
-  security_group_id = aws_security_group.redirector.id
-}
+# Note: SSH on the public EIP is intentionally NOT exposed.
+# The redirector simulates an external VPS, and limiting its public attack
+# surface to ports 80/443 (C2 callbacks) matches how a real redirector would
+# be hardened. Operator SSH access is via Guacamole or `ssh -J admin@<guac-eip>
+# admin@redirector`, allowed by the all-from-main-vpc rule below.
 
 # All traffic from main VPC (internal lab connectivity via VPC peering)
 resource "aws_security_group_rule" "redirector_all_from_main_vpc" {

@@ -181,7 +181,7 @@ Six instances are deployed by default. Only the Guacamole portal and the Apache 
 | Hostname | Role | Public IP | Default access | Credentials source |
 | --- | --- | --- | --- | --- |
 | `guac` | Guacamole portal (web SSH/RDP/VNC) | Yes | `https://<guac-eip>/guacamole` | `terraform output deployment_info` |
-| `redirector` | Apache reverse proxy / C2 frontend | Yes | `ssh admin@<redir-eip>` | `terraform output deployment_info` |
+| `redirector` | Apache reverse proxy / C2 frontend | EIP exposes 80/443 only | Guacamole > Apache Redirector SSH (or `ssh -J` via guac) | `terraform output deployment_info` |
 | `mythic` | Mythic C2 server | No | Guacamole > Mythic SSH (or `ssh -J` via guac) | `terraform output deployment_info` |
 | `sliver` | Sliver C2 server | No | Guacamole > Sliver SSH (or `ssh -J` via guac) | `terraform output deployment_info` |
 | `havoc` | Havoc C2 server + Havoc desktop (VNC) | No | Guacamole > Havoc SSH or VNC | `terraform output deployment_info` |
@@ -791,25 +791,18 @@ This section covers the one manual step required after deployment (SSL certifica
 
 Once DNS has propagated (Step 1.6), SSH to the redirector and run Certbot.
 
+> [!NOTE]
+> The redirector's public Elastic IP exposes only ports 80 and 443. Port 22 is closed on the public face to keep the public attack surface limited to legitimate C2 callback traffic. SSH access is internal only, via Guacamole or a jump through Guacamole.
+
 **Three ways to get a shell on the redirector (pick one):**
 
 | Method | How |
 | ------ | --- |
-| From your host workstation | `ssh -i rs-rsa-key.pem admin@<REDIR_PUBLIC_IP>` (use `.pem` key) |
-| Via Guacamole | Click **"Apache Redirector (SSH)"** in the Guacamole portal |
+| Via Guacamole (recommended) | Click **"Apache Redirector (SSH)"** in the Guacamole portal |
 | From Windows workstation | Open MobaXterm > **redStack Lab** > **Apache Redirector (SSH)** |
+| From your host workstation | Jump through Guacamole: `ssh -J admin@<GUAC_PUBLIC_IP> admin@<REDIR_PRIVATE_IP>` |
 
-**Windows (PowerShell):**
-
-```powershell
-ssh -i ".\rs-rsa-key.pem" admin@<REDIR_PUBLIC_IP>
-```
-
-**Linux/Mac (bash):**
-
-```bash
-ssh -i rs-rsa-key.pem admin@<REDIR_PUBLIC_IP>
-```
+The host-workstation jump uses Guacamole as the bastion. Pick up the Guacamole public IP and the redirector private IP from `terraform output deployment_info`. Password auth works (no `.pem` needed) using the auto-generated lab password.
 
 <details>
 <summary>What is Certbot?</summary>
@@ -941,10 +934,10 @@ sudo /home/admin/test_redirector.sh
 
 ### Step 3.3: Review Configuration
 
-**SSH to redirector** (substitute your actual redirector IP):
+**Get a shell on the redirector** (Guacamole > "Apache Redirector (SSH)", or jump via Guacamole):
 
 ```bash
-ssh -i rs-rsa-key.pem admin@<REDIR_PUBLIC_IP>
+ssh -J admin@<GUAC_PUBLIC_IP> admin@<REDIR_PRIVATE_IP>
 ```
 
 **View Active VirtualHosts:**
@@ -1024,8 +1017,8 @@ Mythic and Sliver have the URI prefix stripped before forwarding. Havoc receives
 All C2 traffic is logged to separate access/error log files:
 
 ```bash
-# SSH to redirector first
-ssh -i rs-rsa-key.pem admin@<REDIR_PUBLIC_IP>
+# Get a shell on the redirector first (Guacamole > "Apache Redirector (SSH)" or jump via guac)
+ssh -J admin@<GUAC_PUBLIC_IP> admin@<REDIR_PRIVATE_IP>
 
 # HTTP access log
 sudo tail -50 /var/log/apache2/redirector-access.log
@@ -1723,8 +1716,8 @@ Step 3: For each missing connection - Protocol SSH, Hostname from terraform outp
 
 ```bash
 # Preferred: use Guacamole "Mythic C2 Server (SSH)" connection
-# Or jump via redirector from your machine:
-ssh -i rs-rsa-key.pem -J admin@<REDIR_PUBLIC_IP> admin@mythic
+# Or jump via Guacamole from your machine:
+ssh -J admin@<GUAC_PUBLIC_IP> admin@mythic
 
 cd /opt/Mythic
 sudo ./mythic-cli logs  # Check for errors

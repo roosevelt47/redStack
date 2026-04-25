@@ -59,8 +59,9 @@ locals {
     Domain:       ${var.redirector_domain != "" ? var.redirector_domain : "c2.example.com"}
     SSH Username: admin
     SSH Password: ${nonsensitive(random_password.lab.result)}
-    SSH (external): ssh -i ${var.ssh_key_name}.pem admin@${aws_eip.redirector.public_ip}
-    SSH (internal): ssh admin@${aws_network_interface.redirector.private_ip}
+    SSH Access:   Guacamole > "Apache Redirector (SSH)"  (recommended)
+                  or: ssh -J admin@${aws_eip.guacamole.public_ip} admin@${aws_network_interface.redirector.private_ip}
+    Note:         Public SSH on port 22 is NOT exposed; only 80/443 are reachable from the internet
     C2 Header:    ${var.c2_header_name}: ${local.c2_header_value}
     URI Routing:  ${var.mythic_uri_prefix}/ -> Mythic
                   ${var.sliver_uri_prefix}/ -> Sliver
