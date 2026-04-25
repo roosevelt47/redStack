@@ -13,13 +13,42 @@
 >
 > Hosting C2 infrastructure on AWS may raise concerns under the [AWS Acceptable Use Policy](https://aws.amazon.com/aup/). Before deploying, review the AUP and submit the [AWS Penetration Testing / Simulated Events request form](https://aws.amazon.com/security/penetration-testing/). This is the appropriate channel for notifying AWS that you are running security tooling on their infrastructure.
 >
-> As long as you are using redStack exclusively for personal lab work and authorized training platforms (HTB, VL, PG, self-hosted cyber ranges, etc.), you are generally in the clear. A quick conversation with AWS customer support can confirm this and give you peace of mind specific to your account and usage pattern. To be safe, consider running redStack from a dedicated, single-purpose throwaway AWS account. One used solely for this lab so there is no risk to other workloads, billing alerts, or account standing.
+> As long as you are using redStack exclusively for personal lab work and authorized training platforms (HTB, VL, PG, self-hosted cyber ranges, etc.), you are generally in the clear. A quick conversation with AWS customer support can confirm this and give you peace of mind specific to your account and usage pattern. To be safe, consider running redStack from a dedicated, single-purpose throwaway AWS account used solely for this lab. That isolates billing alerts and removes any risk to other workloads or account standing.
+
+---
+
+## Quick Start
+
+**What you deploy:** 6 EC2 instances (3 C2 servers + Apache redirector + Guacamole jumpbox + Windows operator workstation) across 2 peered VPCs in a single AWS account.
+
+**Time to ready:** ~10 to 15 min `terraform apply` + ~5 to 10 min cloud-init, plus a one-time SSL cert and Havoc build on first deploy.
+
+**Cost:** ~$25 to $30/mo for 5 to 10 hrs/wk of study (instances stopped between sessions). ~$156/mo if left running 24/7. Full breakdown in [Cost Management](#cost-management).
+
+**Pick a mode** (full decision tree in [Deployment Modes](#deployment-modes)):
+
+- **Open environment** (default): public domain + Let's Encrypt HTTPS. Use for general study, payload testing, AV evasion practice. Requires a domain you own.
+- **Closed environment**: HTB / VulnLab / Proving Grounds Pro Labs over OpenVPN. No public DNS, self-signed cert. Skip the domain steps and follow [Part 8](#part-8-external-target-environments-htbvlpg).
+
+**You will need:**
+
+- AWS account (a dedicated throwaway is strongly recommended) with EC2 quota for at least 6 instances and 2 VPCs
+- Terraform >= 1.0 and AWS CLI
+- An RSA SSH key pair created in AWS (Step 0.4)
+- A domain name (open environment only)
+- ~$30/mo budget
+
+**The 6-step path:** Part 0 (prerequisites) > Part 1 (`terraform apply`) > Part 2 (verify access) > Part 3 (SSL + redirector) > Parts 4 to 6 (Mythic / Sliver / Havoc) > Cleanup with `terraform destroy`.
 
 ---
 
 ## Table of Contents
 
+- [Quick Start](#quick-start)
 - [Architecture Overview](#architecture-overview)
+- [Lab Inventory](#lab-inventory)
+- [Deployment Modes](#deployment-modes)
+- [Timing Expectations](#timing-expectations)
 - [Part 0: Pre-Deployment Checklist](#part-0-pre-deployment-checklist)
   - [Prerequisites](#prerequisites)
   - [Step 0.1: Clone Repository & Install Tools](#step-01-clone-repository--install-tools)
@@ -145,6 +174,59 @@ Public Internet Environment (C2 Callback Flow):
 
 ---
 
+## Lab Inventory
+
+Six instances are deployed by default. Only the Guacamole portal and the Apache redirector hold public Elastic IPs. Everything else lives inside private VPCs and is reached through Guacamole.
+
+| Hostname | Role | Public IP | Default access | Credentials source |
+| --- | --- | --- | --- | --- |
+| `guac` | Guacamole portal (web SSH/RDP/VNC) | Yes | `https://<guac-eip>/guacamole` | `terraform output deployment_info` |
+| `redirector` | Apache reverse proxy / C2 frontend | Yes | `ssh admin@<redir-eip>` | `terraform output deployment_info` |
+| `mythic` | Mythic C2 server | No | Guacamole > Mythic SSH (or `ssh -J` via guac) | `terraform output deployment_info` |
+| `sliver` | Sliver C2 server | No | Guacamole > Sliver SSH (or `ssh -J` via guac) | `terraform output deployment_info` |
+| `havoc` | Havoc C2 server + Havoc desktop (VNC) | No | Guacamole > Havoc SSH or VNC | `terraform output deployment_info` |
+| `WIN-OPERATOR` | Windows operator workstation | No | Guacamole > Windows Operator (RDP) | AWS-decrypted, shown in `terraform output deployment_info` |
+
+**One command for everything:** `terraform output deployment_info` prints all IPs, the auto-generated lab password, the Windows Administrator password, and the C2 header token. Save it once after deploy.
+
+---
+
+## Deployment Modes
+
+redStack runs in one of two modes. Pick before you fill out `terraform.tfvars`. The choice changes only a handful of variables and a couple of post-deploy steps.
+
+| | **Open environment** (default) | **Closed environment** (HTB / VL / PG) |
+| --- | --- | --- |
+| **Use when** | General study, payload testing, AV evasion practice over the public internet | Pro Labs reachable only over OpenVPN (HackTheBox, VulnLab, Proving Grounds) |
+| **DNS** | You own a public domain and create A records to the redirector | None. Redirector is reached by its public Elastic IP |
+| **TLS** | Let's Encrypt cert via Certbot (manual one-time step) | Self-signed cert with the public IP as Subject Alternative Name (auto-generated at deploy) |
+| **Scanner blocking** | `redirect.rules` enabled (blocks AV vendors, TOR exits) | Disabled (not needed in isolated lab networks) |
+| **VPN tunnel** | None | OpenVPN client on redirector + WireGuard tunnel from C2 VPC > redirector |
+| **Key tfvars** | `redirector_domain = "yourdomain.tld"` | `redirector_domain = ""`, `enable_external_vpn = true`, `enable_redirector_htaccess_filtering = false` |
+| **Path through this guide** | Parts 0 to 7 in order | Parts 0 to 7, but skip Steps 1.6 and 3.1; then follow [Part 8](#part-8-external-target-environments-htbvlpg) |
+
+> [!NOTE]
+> Both modes use the same network architecture, the same C2 stack, and the same Guacamole portal. Only the front door changes.
+
+---
+
+## Timing Expectations
+
+Set expectations before you start. Most timing surprises in redStack come from the Windows boot and the Havoc build.
+
+| Phase | Duration | Notes |
+| --- | --- | --- |
+| `terraform apply` | ~10 to 15 min | 50+ AWS resources |
+| Cloud-init on Linux hosts | ~5 to 10 min | Mythic Docker pulls, Apache config, redirect.rules download |
+| Windows initialization | up to ~15 min | Slowest component. RDP becomes available last |
+| Certbot SSL issuance (open mode only) | ~30 sec | After DNS propagates |
+| Havoc build (one-time, first deploy only) | ~15 to 25 min | Compiles teamserver from source on `havoc` |
+| Mythic agent build | ~30 to 60 sec | Per agent |
+| First C2 callback after agent execution | ~10 sec | Depending on `callback_interval` |
+| `terraform destroy` | ~5 min | Releases EIPs, terminates instances, removes VPCs |
+
+---
+
 ## Part 0: Pre-Deployment Checklist
 
 ### Prerequisites
@@ -195,9 +277,11 @@ redStack provisions EC2, VPC, security group, Elastic IP, network interface, key
 
 **Option A: AdministratorAccess (recommended. Use this unless you have a specific reason not to)**
 
-This is the right choice for the vast majority of redStack users. If you followed the earlier recommendation and created a dedicated AWS account solely for this lab, `AdministratorAccess` is the practical default. There are no other workloads, billing resources, or sensitive data in the account to protect. Admin access on an empty account carries the same real-world risk as the scoped policy: if the credentials are compromised, the attacker can only touch the lab infrastructure you already plan to tear down.
+This is the right choice for the vast majority of redStack users.
 
-Least privilege adds meaningful protection when credentials could expose things beyond this lab. On a dedicated account, there is nothing else to expose. Use Option A, keep it simple, and save the complexity of Option B for when it actually buys you something.
+If you followed the earlier recommendation and created a dedicated AWS account solely for this lab, `AdministratorAccess` is the practical default. There are no other workloads, billing resources, or sensitive data in the account to protect. On an empty account, admin access carries the same real-world risk as a scoped policy. If the credentials are compromised, the attacker can only touch the lab infrastructure you already plan to tear down.
+
+Least privilege adds meaningful protection when credentials could expose things beyond this lab. On a dedicated account, there is nothing else to expose. Use Option A and save Option B for when it actually buys you something.
 
 <details>
 <summary>How to create the IAM user and attach AdministratorAccess (click to expand)</summary>
@@ -349,7 +433,7 @@ aws ec2 describe-key-pairs --key-names rs-rsa-key
 ```
 
 > [!NOTE]
-> You can also create the key pair in the AWS Console under EC2 → Key Pairs → Create key pair. Use RSA and .pem format. Download the file into your `redStack/` directory and fix permissions with the `icacls` command above.
+> You can also create the key pair in the AWS Console under EC2 > Key Pairs > Create key pair. Use RSA and .pem format. Download the file into your `redStack/` directory and fix permissions with the `icacls` command above.
 
 **Checkpoint:** ✅ SSH key pair created and .pem file saved in project folder
 
@@ -467,10 +551,10 @@ The [AWS EC2 Dashboard](https://console.aws.amazon.com/ec2/home) is your primary
 
 | Section | Where to find it | What to check |
 | --- | --- | --- |
-| **Instances** | EC2 → Instances → Instances | All 6 redStack instances should show `running` after `terraform apply`. After `terraform destroy`, all should show `terminated`. |
-| **Elastic IPs** | EC2 → Network & Security → Elastic IPs | Two EIPs are allocated at deploy time (Guacamole, Redirector). After `terraform destroy`, both should be released (not listed). Unreleased EIPs incur charges. |
-| **Key Pairs** | EC2 → Network & Security → Key Pairs | Confirm `rs-rsa-key` exists before deploying. Terraform does not create this. It must be present or `terraform apply` will fail. |
-| **VPCs** | VPC → Your VPCs | Two VPCs are created: TeamServer VPC (`172.31.0.0/16`) and Redirector VPC (`10.60.0.0/16`). After destroy, both should be gone. |
+| **Instances** | EC2 > Instances > Instances | All 6 redStack instances should show `running` after `terraform apply`. After `terraform destroy`, all should show `terminated`. |
+| **Elastic IPs** | EC2 > Network & Security > Elastic IPs | Two EIPs are allocated at deploy time (Guacamole, Redirector). After `terraform destroy`, both should be released (not listed). Unreleased EIPs incur charges. |
+| **Key Pairs** | EC2 > Network & Security > Key Pairs | Confirm `rs-rsa-key` exists before deploying. Terraform does not create this. It must be present or `terraform apply` will fail. |
+| **VPCs** | VPC > Your VPCs | Two VPCs are created: TeamServer VPC (`172.31.0.0/16`) and Redirector VPC (`10.60.0.0/16`). After destroy, both should be gone. |
 
 **Quick region check:** Make sure the AWS Console region (top-right dropdown) matches the region in your `terraform.tfvars` (`us-east-1` by default). Resources created in one region are invisible when viewing another.
 
@@ -584,7 +668,9 @@ Log into your domain registrar or DNS provider (e.g., Namecheap, Cloudflare, Rou
 | A Record | `www` | `<Redirector Elastic IP>` | Automatic |
 | A Record | `sub` | `<Redirector Elastic IP>` | Automatic |
 
-Only `@` (the apex domain) is required. The `www` entry is only needed if you want callbacks over `www.yourdomain.tld`. The `sub` placeholder represents any custom subdomain: e.g., `test.yourdomain.tld`, `cdn.yourdomain.tld`, `chat.yourdomain.tld`. Custom subdomains blend beacon and implant traffic into patterns that look like legitimate service traffic, making callbacks harder to flag in firewall logs and network monitoring. This simulates real-world C2 tradecraft so you can practice detection and evasion techniques in a lab setting.
+Only `@` (the apex domain) is required. Add `www` only if you want callbacks over `www.yourdomain.tld`.
+
+The `sub` row is a placeholder for any custom subdomain you want to use, for example `test.yourdomain.tld`, `cdn.yourdomain.tld`, or `chat.yourdomain.tld`. Custom subdomains blend beacon and implant traffic into patterns that look like legitimate service traffic. That makes callbacks harder to flag in firewall logs and network monitoring, which simulates real-world C2 tradecraft so you can practice detection and evasion in a lab setting.
 
 **Verify DNS Propagation** (substitute your actual `redirector_domain` value from `terraform.tfvars`):
 
@@ -711,7 +797,7 @@ Once DNS has propagated (Step 1.6), SSH to the redirector and run Certbot.
 | ------ | --- |
 | From your host workstation | `ssh -i rs-rsa-key.pem admin@<REDIR_PUBLIC_IP>` (use `.pem` key) |
 | Via Guacamole | Click **"Apache Redirector (SSH)"** in the Guacamole portal |
-| From Windows workstation | Open MobaXterm → **redStack Lab** → **Apache Redirector (SSH)** |
+| From Windows workstation | Open MobaXterm > **redStack Lab** > **Apache Redirector (SSH)** |
 
 **Windows (PowerShell):**
 
@@ -925,9 +1011,9 @@ terraform output deployment_info
 
 | URI Prefix | Backend | Forwarded as |
 | ---------- | ------- | ------------ |
-| `/cdn/media/stream/` | Mythic | Prefix stripped → Mythic receives `/callback` |
-| `/cloud/storage/objects/` | Sliver | Prefix stripped → Sliver receives `/session` |
-| `/edge/cache/assets/` | Havoc | Full path preserved → Havoc receives `/edge/cache/assets/update` |
+| `/cdn/media/stream/` | Mythic | Prefix stripped > Mythic receives `/callback` |
+| `/cloud/storage/objects/` | Sliver | Prefix stripped > Sliver receives `/session` |
+| `/edge/cache/assets/` | Havoc | Full path preserved > Havoc receives `/edge/cache/assets/update` |
 
 Mythic and Sliver have the URI prefix stripped before forwarding. Havoc receives the full path including the prefix. This is required because Havoc's listener validates URIs against the same paths embedded in the demon.
 
@@ -1126,7 +1212,7 @@ Two ways to get a shell on Sliver (pick one):
 | Method | How |
 | ------ | --- |
 | Via Guacamole | Click **"Sliver C2 Server (SSH)"** in the Guacamole portal |
-| From Windows workstation | Open MobaXterm → **redStack Lab** → **Sliver C2 Server (SSH)** |
+| From Windows workstation | Open MobaXterm > **redStack Lab** > **Sliver C2 Server (SSH)** |
 
 > [!NOTE]
 > For a CLI-only experience from your host machine, SSH into the Guacamole instance using your AWS key (it has a public Elastic IP) and use it as a jumpbox:
