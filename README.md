@@ -1,4 +1,6 @@
-<!-- markdownlint-disable MD060 MD040 -->
+<!-- markdownlint-disable MD001 MD012 MD013 MD028 MD033 MD036 MD040 MD051 MD060 -->
+<!-- Lint suppressions: GFM features (alerts, inline HTML, anchor slugs) and table style. -->
+<!-- Documented rationale lives at assets/markdownlint.jsonc. -->
 
 # redStack
 
