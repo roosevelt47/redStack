@@ -61,8 +61,9 @@ resource "aws_instance" "kali" {
   }
 
   tags = {
-    Name = "${var.project_name}-kali-operator"
-    Role = "operator-workstation-linux"
-    Mode = var.kali_deployment_mode
+    Name     = "${var.project_name}-kali"
+    Role     = "workstation"
+    Hostname = "kali"
+    Mode     = var.kali_deployment_mode
   }
 }

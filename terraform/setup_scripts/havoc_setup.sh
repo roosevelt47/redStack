@@ -28,7 +28,7 @@ ${guacamole_private_ip}  guac
 ${mythic_private_ip}     mythic
 ${sliver_private_ip}     sliver
 ${redirector_private_ip} redirector
-${windows_private_ip}    win-operator
+${windows_private_ip}    windows
 ${kali_private_ip}       kali
 HOSTS
 
@@ -129,7 +129,7 @@ Demon {
 }
 
 Operators {
-    user "operator" {
+    user "admin" {
         Password = "$SSH_PASSWORD"
     }
 }
@@ -312,7 +312,7 @@ echo "  VNC:          Reconnect via Guacamole — client autostarts on desktop"
 echo ""
 echo "  To connect the Havoc client:"
 echo "    Host:     localhost    Port: 40056"
-echo "    User:     operator     Pass: (see /opt/Havoc/profiles/default.yaotl)"
+echo "    User:     admin        Pass: (see /opt/Havoc/profiles/default.yaotl)"
 BUILDSCRIPT
 chmod +x /home/admin/build_havoc.sh
 

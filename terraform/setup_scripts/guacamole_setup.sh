@@ -228,7 +228,7 @@ if [ -n "$TOKEN" ]; then
         --arg user "$WINDOWS_USERNAME" \
         --arg pass "$WINDOWS_PASSWORD" \
         '{
-            name: "Windows Operator Workstation",
+            name: "Windows (RDP)",
             protocol: "rdp",
             parameters: {
                 hostname: $host,
@@ -258,7 +258,7 @@ if [ -n "$TOKEN" ]; then
     curl -s -X POST "http://localhost:8080/guacamole/api/session/data/postgresql/connections?token=$TOKEN" \
         -H "Content-Type: application/json" \
         -d "{
-            \"name\": \"Mythic Team Server (SSH)\",
+            \"name\": \"Mythic (SSH)\",
             \"protocol\": \"ssh\",
             \"parameters\": {
                 \"hostname\": \"$MYTHIC_PRIVATE_IP\",
@@ -281,7 +281,7 @@ if [ -n "$TOKEN" ]; then
     curl -s -X POST "http://localhost:8080/guacamole/api/session/data/postgresql/connections?token=$TOKEN" \
         -H "Content-Type: application/json" \
         -d "{
-            \"name\": \"Guacamole Server (SSH)\",
+            \"name\": \"Guacamole (SSH)\",
             \"protocol\": \"ssh\",
             \"parameters\": {
                 \"hostname\": \"$GUAC_PRIVATE_IP\",
@@ -302,7 +302,7 @@ if [ -n "$TOKEN" ]; then
     curl -s -X POST "http://localhost:8080/guacamole/api/session/data/postgresql/connections?token=$TOKEN" \
         -H "Content-Type: application/json" \
         -d "{
-            \"name\": \"Apache Redirector (SSH)\",
+            \"name\": \"Redirector (SSH)\",
             \"protocol\": \"ssh\",
             \"parameters\": {
                 \"hostname\": \"$REDIRECTOR_PRIVATE_IP\",
@@ -323,7 +323,7 @@ if [ -n "$TOKEN" ]; then
     curl -s -X POST "http://localhost:8080/guacamole/api/session/data/postgresql/connections?token=$TOKEN" \
         -H "Content-Type: application/json" \
         -d "{
-            \"name\": \"Sliver C2 Server (SSH)\",
+            \"name\": \"Sliver (SSH)\",
             \"protocol\": \"ssh\",
             \"parameters\": {
                 \"hostname\": \"$SLIVER_PRIVATE_IP\",
@@ -344,7 +344,7 @@ if [ -n "$TOKEN" ]; then
     curl -s -X POST "http://localhost:8080/guacamole/api/session/data/postgresql/connections?token=$TOKEN" \
         -H "Content-Type: application/json" \
         -d "{
-            \"name\": \"Havoc C2 Server (SSH)\",
+            \"name\": \"Havoc (SSH)\",
             \"protocol\": \"ssh\",
             \"parameters\": {
                 \"hostname\": \"$HAVOC_PRIVATE_IP\",
@@ -365,7 +365,7 @@ if [ -n "$TOKEN" ]; then
     curl -s -X POST "http://localhost:8080/guacamole/api/session/data/postgresql/connections?token=$TOKEN" \
         -H "Content-Type: application/json" \
         -d "{
-            \"name\": \"Havoc C2 Desktop (VNC)\",
+            \"name\": \"Havoc Desktop (VNC)\",
             \"protocol\": \"vnc\",
             \"parameters\": {
                 \"hostname\": \"$HAVOC_PRIVATE_IP\",
@@ -384,7 +384,7 @@ if [ -n "$TOKEN" ]; then
     curl -s -X POST "http://localhost:8080/guacamole/api/session/data/postgresql/connections?token=$TOKEN" \
         -H "Content-Type: application/json" \
         -d "{
-            \"name\": \"Kali Operator (SSH)\",
+            \"name\": \"Kali (SSH)\",
             \"protocol\": \"ssh\",
             \"parameters\": {
                 \"hostname\": \"$KALI_PRIVATE_IP\",
@@ -408,7 +408,7 @@ if [ -n "$TOKEN" ]; then
         curl -s -X POST "http://localhost:8080/guacamole/api/session/data/postgresql/connections?token=$TOKEN" \
             -H "Content-Type: application/json" \
             -d "{
-                \"name\": \"Kali Operator (XRDP)\",
+                \"name\": \"Kali (XRDP)\",
                 \"protocol\": \"rdp\",
                 \"parameters\": {
                     \"hostname\": \"$KALI_PRIVATE_IP\",

@@ -178,7 +178,8 @@ resource "aws_instance" "havoc" {
   }
 
   tags = {
-    Name = "${var.project_name}-havoc-server"
-    Role = "c2-havoc"
+    Name     = "${var.project_name}-havoc"
+    Role     = "c2"
+    Hostname = "havoc"
   }
 }

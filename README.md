@@ -4,7 +4,7 @@
 
 ![redStack Banner](assets/redStack-banner.png)
 
-> A self-contained Boot-to-Breach lab on AWS. Deploy a full red-team training environment in ~30 minutes — three C2 frameworks (Mythic, Sliver, Havoc), an Apache redirector, a Kali operator, a Windows operator, and a Guacamole portal. Two peered VPCs, header + URI gating, scanner blocking, optional OpenVPN routing for HTB / VulnLab / Proving Grounds.
+> A self-contained Boot-to-Breach lab on AWS. Deploy a full red-team training environment in ~30 minutes: three C2 frameworks (Mythic, Sliver, Havoc), an Apache redirector, a Kali workstation, a Windows workstation, and a Guacamole portal. Two peered VPCs, header + URI gating, scanner blocking, optional OpenVPN routing for HTB / VulnLab / Proving Grounds.
 
 **📖 [Full documentation lives in the redStack Wiki →](https://github.com/BaddKharma/redStack/wiki)**
 
@@ -13,10 +13,10 @@ The wiki is the de facto operator handbook. This README is a thin landing page s
 ---
 
 > [!IMPORTANT]
-> redStack is not a tutorial on how to use C2 frameworks. It is an environment that removes the infrastructure hurdle so you can focus on learning. **This lab is strictly for authorized training and lab environments only** (HTB, VL, PG, self-hosted cyber ranges, personal lab VMs, etc.). Not intended for use in real-world engagements or against targets you do not own and have explicit written permission to test.
+> redStack is not a tutorial on how to use C2 frameworks. It's an environment that removes the infrastructure hurdle so you can focus on learning. **This lab is strictly for authorized training and lab environments only** (HTB, VL, PG, self-hosted cyber ranges, personal lab VMs, etc.). Not intended for use in real-world engagements or against targets you do not own and have explicit written permission to test.
 
 > [!CAUTION]
-> **AWS TOS: Use at your own risk.** Hosting C2 infrastructure on AWS may raise concerns under the [AWS Acceptable Use Policy](https://aws.amazon.com/aup/). Before deploying, review the AUP and submit the [AWS Penetration Testing / Simulated Events request form](https://aws.amazon.com/security/penetration-testing/). As long as you are using redStack exclusively for personal lab work and authorized training platforms, you are generally in the clear. To be safe, run redStack from a dedicated, single-purpose throwaway AWS account.
+> **AWS TOS: use at your own risk.** Hosting C2 infrastructure on AWS may raise concerns under the [AWS Acceptable Use Policy](https://aws.amazon.com/aup/). Before deploying, review the AUP and submit the [AWS Penetration Testing / Simulated Events request form](https://aws.amazon.com/security/penetration-testing/). As long as you're using redStack exclusively for personal lab work and authorized training platforms, you're generally in the clear. To be safe, run redStack from a dedicated, single-purpose throwaway AWS account.
 
 ---
 
@@ -28,7 +28,7 @@ The wiki is the de facto operator handbook. This README is a thin landing page s
 | 2 | Pick open or closed environment | **[Deployment Modes](https://github.com/BaddKharma/redStack/wiki/Deployment-Modes)** |
 | 3 | Configure tfvars and `terraform apply` | **[Deploy](https://github.com/BaddKharma/redStack/wiki/Deploy)** |
 | 4 | Confirm Guacamole + Windows + internal DNS | **[Verify](https://github.com/BaddKharma/redStack/wiki/Verify)** |
-| 5 | Land first beacon: pick a C2 | **[Mythic-C2](https://github.com/BaddKharma/redStack/wiki/Mythic-C2)** · **[Sliver-C2](https://github.com/BaddKharma/redStack/wiki/Sliver-C2)** · **[Havoc-C2](https://github.com/BaddKharma/redStack/wiki/Havoc-C2)** |
+| 5 | Land first beacon: pick a C2 | **[Mythic](https://github.com/BaddKharma/redStack/wiki/Mythic)** · **[Sliver](https://github.com/BaddKharma/redStack/wiki/Sliver)** · **[Havoc](https://github.com/BaddKharma/redStack/wiki/Havoc)** |
 
 **Total time:** ~45-90 minutes on first deploy. Subsequent deploys: ~30-45 minutes.
 
@@ -38,7 +38,7 @@ The wiki is the de facto operator handbook. This README is a thin landing page s
 
 ## What Gets Deployed
 
-Seven EC2 instances across two peered VPCs. Two have public Elastic IPs (Guacamole portal + Apache redirector); everything else is reachable only through Guacamole.
+Seven EC2 instances across two peered VPCs. Two have public Elastic IPs (Guacamole portal + redirector); everything else is reachable only through Guacamole.
 
 | Hostname | Role | Public IP |
 |----------|------|-----------|
@@ -47,10 +47,10 @@ Seven EC2 instances across two peered VPCs. Two have public Elastic IPs (Guacamo
 | `mythic` | Mythic C2 server | No |
 | `sliver` | Sliver C2 server | No |
 | `havoc` | Havoc C2 server + desktop (VNC) | No |
-| `WIN-OPERATOR` | Windows Server 2022 operator workstation | No |
-| `kali` | Kali Linux operator (AD enum + attack toolset) | No |
+| `windows` | Windows Server 2022 workstation | No |
+| `kali` | Kali Linux workstation (AD enum + attack toolset) | No |
 
-Full inventory + sizing details: **[Lab-Inventory](https://github.com/BaddKharma/redStack/wiki/Lab-Inventory)**.
+Full inventory and sizing details: **[Lab-Inventory](https://github.com/BaddKharma/redStack/wiki/Lab-Inventory)**.
 Architecture diagram: **[Lab-Architecture](https://github.com/BaddKharma/redStack/wiki/Lab-Architecture)**.
 
 ---
@@ -76,11 +76,11 @@ Roughly **$0.25/hour** of compute while running. With `terraform destroy` betwee
 
 **Reference:** [Lab-Architecture](https://github.com/BaddKharma/redStack/wiki/Lab-Architecture) · [Lab-Inventory](https://github.com/BaddKharma/redStack/wiki/Lab-Inventory) · [SSH-Access](https://github.com/BaddKharma/redStack/wiki/SSH-Access) · [Cost-Management](https://github.com/BaddKharma/redStack/wiki/Cost-Management)
 
-**C2 walkthroughs:** [Mythic-C2](https://github.com/BaddKharma/redStack/wiki/Mythic-C2) · [Sliver-C2](https://github.com/BaddKharma/redStack/wiki/Sliver-C2) · [Havoc-C2](https://github.com/BaddKharma/redStack/wiki/Havoc-C2)
+**C2 backends:** [Mythic](https://github.com/BaddKharma/redStack/wiki/Mythic) · [Sliver](https://github.com/BaddKharma/redStack/wiki/Sliver) · [Havoc](https://github.com/BaddKharma/redStack/wiki/Havoc)
 
-**Operator workstations:** [Kali-Operator](https://github.com/BaddKharma/redStack/wiki/Kali-Operator)
+**Workstations:** [Windows](https://github.com/BaddKharma/redStack/wiki/Windows) · [Kali](https://github.com/BaddKharma/redStack/wiki/Kali)
 
-**Infrastructure:** [Apache-Redirector](https://github.com/BaddKharma/redStack/wiki/Apache-Redirector) · [External-Targets](https://github.com/BaddKharma/redStack/wiki/External-Targets)
+**Infrastructure:** [Guacamole](https://github.com/BaddKharma/redStack/wiki/Guacamole) · [Redirector](https://github.com/BaddKharma/redStack/wiki/Redirector) · [External-Targets](https://github.com/BaddKharma/redStack/wiki/External-Targets)
 
 **Help:** [Troubleshooting](https://github.com/BaddKharma/redStack/wiki/Troubleshooting)
 
@@ -90,23 +90,68 @@ Roughly **$0.25/hour** of compute while running. With `terraform destroy` betwee
 
 ```
 redStack/
-├── *.tf                  Terraform infrastructure (variables, security groups, instances, outputs)
-├── setup_scripts/        Cloud-init user-data scripts for each host
-├── assets/               README banner and other static images
-├── terraform.tfvars.example  Sample configuration with comments
-└── README.md             This file
+├── README.md                 This file (the landing page)
+├── LICENSE                   MIT (also inlined below)
+├── assets/                   Static images (banner)
+├── rs-rsa-key.pem            Your AWS SSH key (gitignored, place here)
+└── terraform/                All Terraform code
+    ├── main.tf               VPC, subnets, ENIs, Mythic, Guacamole, Windows
+    ├── variables.tf          Input variables
+    ├── security_groups.tf    Per-host security groups
+    ├── sliver.tf             Sliver SG, ENI, instance
+    ├── havoc.tf              Havoc SG, ENI, instance
+    ├── redirector.tf         Redirector VPC, peering, SG, ENI, instance
+    ├── kali.tf               Kali SG, ENI, instance
+    ├── outputs.tf            deployment_info + network_architecture
+    ├── terraform.tfvars      Your local config (gitignored)
+    ├── terraform.tfvars.example  Sample config
+    └── setup_scripts/        Cloud-init scripts templated by templatefile()
 ```
 
-The Terraform code is intentionally flat (one file per role: `mythic.tf` would be a refactor target, but right now Mythic lives in `main.tf` alongside the shared bits; Sliver, Havoc, Redirector, and Kali each have their own files). Setup scripts in `setup_scripts/` are templated by Terraform `templatefile()` and rendered into user-data at apply time.
+The Terraform code is one file per role: Sliver, Havoc, Redirector, and Kali each own their own `.tf`; Mythic / Guacamole / Windows live in `main.tf` alongside the shared VPC scaffolding. Setup scripts in `terraform/setup_scripts/` are rendered into user-data at apply time.
+
+**Workflow:**
+
+```bash
+cd terraform
+terraform init
+terraform apply
+```
+
+The SSH private key (`rs-rsa-key.pem`) lives at the repo root; `terraform.tfvars.example` references it as `../rs-rsa-key.pem` from inside `terraform/`.
 
 ---
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT.
+
+```
+MIT License
+
+Copyright (c) 2026 BaddKharma
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
 
 ---
 
 ## Contributing
 
-Issues and PRs welcome. The wiki is a separate Git repo (`redStack.wiki.git`) — clone it locally to edit pages directly. Screenshot and GIF placeholders throughout the wiki are filled in over time; if you've taken a useful capture of a redStack workflow, contributions there are especially welcome.
+Issues and PRs welcome. The wiki is a separate Git repo (`redStack.wiki.git`); clone it locally to edit pages directly. Screenshot and GIF placeholders throughout the wiki are filled in over time. If you've taken a useful capture of a redStack workflow, contributions there are especially welcome.

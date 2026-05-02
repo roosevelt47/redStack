@@ -264,8 +264,9 @@ resource "aws_instance" "mythic" {
   }
 
   tags = {
-    Name = "${var.project_name}-mythic-server"
-    Role = "c2-backend"
+    Name     = "${var.project_name}-mythic"
+    Role     = "c2"
+    Hostname = "mythic"
   }
 }
 
@@ -341,8 +342,9 @@ resource "aws_instance" "guacamole" {
   }
 
   tags = {
-    Name = "${var.project_name}-guacamole-server"
-    Role = "operator-access"
+    Name     = "${var.project_name}-guacamole"
+    Role     = "portal"
+    Hostname = "guac"
   }
 }
 
@@ -393,7 +395,8 @@ resource "aws_instance" "windows" {
   }
 
   tags = {
-    Name = "${var.project_name}-windows-client"
-    Role = "operator-workstation"
+    Name     = "${var.project_name}-windows"
+    Role     = "workstation"
+    Hostname = "windows"
   }
 }

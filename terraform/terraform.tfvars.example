@@ -13,11 +13,13 @@ localPub_ip = "x.x.x.x/32"
 # Must already exist in AWS EC2 Console > Key Pairs
 ssh_key_name = "rs-rsa-key"
 
-# Path to your SSH private key (.pem file) — used to decrypt the Windows Administrator password
-ssh_private_key_path = "./rs-rsa-key.pem"
+# Path to your SSH private key (.pem file). Used to decrypt the Windows Administrator password.
+# This path is relative to the terraform/ subdirectory you run apply from; the key itself
+# lives in the repo root.
+ssh_private_key_path = "../rs-rsa-key.pem"
 
-# Your redirector domain — apex or subdomain (e.g. c2.yourdomain.com)
-# Point this domain's A record to the Redirector Elastic IP after deployment
+# Your redirector domain (apex or subdomain, e.g. c2.yourdomain.com).
+# Point this domain's A record to the Redirector Elastic IP after deployment.
 redirector_domain = "exampledomain.com"
 
 # ============================================================================
@@ -113,7 +115,7 @@ tags = {
 #    Hourly compute mix (Windows AMI bundles license into the rate):
 #      2x Linux  t3.medium  (Mythic, Havoc):            $0.0416/hr each
 #      3x Linux  t3.small   (Guac, Sliver, Redirector): $0.0208/hr each
-#      1x Windows t3.medium (WIN-OPERATOR):             $0.0608/hr
+#      1x Windows t3.medium (windows):             $0.0608/hr
 #      Combined: ~$0.21/hr
 #
 #    RECOMMENDED: 5-10 hrs/week study + `terraform destroy` between sessions.

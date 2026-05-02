@@ -26,7 +26,7 @@ ${guacamole_private_ip}  guac
 ${mythic_private_ip}     mythic
 ${sliver_private_ip}     sliver
 ${havoc_private_ip}      havoc
-${windows_private_ip}    win-operator
+${windows_private_ip}    windows
 ${kali_private_ip}       kali
 HOSTS
 

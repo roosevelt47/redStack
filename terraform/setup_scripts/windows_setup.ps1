@@ -36,8 +36,8 @@ Start-Transcript -Path "C:\Windows\Temp\user-data.log" -Append
 Write-Host "===== Windows Client Setup Started $(Get-Date) ====="
 
 # Set hostname
-Write-Host "[*] Setting hostname to WIN-OPERATOR..."
-Rename-Computer -NewName "WIN-OPERATOR" -Force
+Write-Host "[*] Setting hostname to windows..."
+Rename-Computer -NewName "windows" -Force
 
 # Configure hosts file for lab machines
 Write-Host "[*] Configuring hosts file for lab machines..."

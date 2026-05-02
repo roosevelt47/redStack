@@ -258,9 +258,10 @@ resource "aws_instance" "redirector" {
   }
 
   tags = {
-    Name = "${var.project_name}-apache-redirector"
-    Role = "c2-redirector"
-    Note = "Simulates external VPS (separate network)"
+    Name     = "${var.project_name}-redirector"
+    Role     = "redirector"
+    Hostname = "redirector"
+    Note     = "Simulates external VPS (separate network)"
   }
 }
 

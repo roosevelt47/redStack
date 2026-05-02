@@ -168,7 +168,8 @@ resource "aws_instance" "sliver" {
   }
 
   tags = {
-    Name = "${var.project_name}-sliver-server"
-    Role = "c2-sliver"
+    Name     = "${var.project_name}-sliver"
+    Role     = "c2"
+    Hostname = "sliver"
   }
 }

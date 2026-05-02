@@ -60,7 +60,7 @@ ${mythic_private_ip}     mythic
 ${sliver_private_ip}     sliver
 ${havoc_private_ip}      havoc
 ${redirector_private_ip} redirector
-${windows_private_ip}    win-operator
+${windows_private_ip}    windows
 HOSTS
 
 # ----------------------------------------------------------------------------
@@ -272,7 +272,7 @@ cat << BANNER
    Mode:           $(echo "${kali_deployment_mode}" | tr '[:lower:]' '[:upper:]')
    Install tools:  sudo install-kali-tools     (21-package AD/enum lineup)
    Convert to GUI: sudo kali-go-gui            (only needed in HEADLESS mode)
-   Lab hosts:      kali, guac, mythic, sliver, havoc, redirector, win-operator
+   Lab hosts:      kali, guac, mythic, sliver, havoc, redirector, windows
 +=====================================================================+
 
 BANNER

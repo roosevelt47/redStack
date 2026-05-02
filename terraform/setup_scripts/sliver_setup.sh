@@ -28,7 +28,7 @@ ${guacamole_private_ip}  guac
 ${mythic_private_ip}     mythic
 ${havoc_private_ip}      havoc
 ${redirector_private_ip} redirector
-${windows_private_ip}    win-operator
+${windows_private_ip}    windows
 ${kali_private_ip}       kali
 HOSTS
 
@@ -128,17 +128,17 @@ echo "[*] Removing installer-generated operator configs..."
 rm -f /home/admin/.sliver-client/configs/admin_localhost.cfg
 rm -f /root/.sliver-client/configs/root_localhost.cfg
 
-# Generate operator config for local admin access
-echo "[*] Generating operator config for operator..."
-sliver-server operator --name operator --lhost localhost --save /root/operator.cfg --permissions all
-echo "[+] Operator config saved to /root/operator.cfg"
+# Generate Sliver operator config for the admin identity (matches SSH user, lab convention)
+echo "[*] Generating Sliver operator config for admin..."
+sliver-server operator --name admin --lhost localhost --save /root/admin.cfg --permissions all
+echo "[+] Operator config saved to /root/admin.cfg"
 
 # Install config so admin can run sliver-client immediately on login
-echo "[*] Installing operator config for admin user..."
+echo "[*] Installing Sliver operator config for admin user..."
 mkdir -p /home/admin/.sliver-client/configs
-cp /root/operator.cfg /home/admin/.sliver-client/configs/operator.cfg
+cp /root/admin.cfg /home/admin/.sliver-client/configs/admin.cfg
 chown -R admin:admin /home/admin/.sliver-client
-chmod 600 /home/admin/.sliver-client/configs/operator.cfg
+chmod 600 /home/admin/.sliver-client/configs/admin.cfg
 echo "[+] sliver-client is ready for admin user"
 
 # Create HTTP C2 profile with the redirector validation header pre-configured
@@ -213,7 +213,7 @@ echo ""
 echo "4. Generate an implant:"
 echo "   generate --http https://REDIRECTOR_DOMAIN/cloud/storage/objects/ --os windows --arch amd64 --format exe --c2profile redstack --save /tmp/implant.exe"
 echo ""
-echo "5. Transfer to Windows (from PowerShell on WIN-OPERATOR):"
+echo "5. Transfer to Windows (from PowerShell on windows):"
 echo "   scp admin@sliver:/tmp/implant.exe C:\Users\Administrator\Desktop\implant.exe"
 echo ""
 echo "Service status:"

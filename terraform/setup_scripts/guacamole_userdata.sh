@@ -26,7 +26,7 @@ ${mythic_private_ip}     mythic
 ${sliver_private_ip}     sliver
 ${havoc_private_ip}      havoc
 ${redirector_private_ip} redirector
-${windows_private_ip}    win-operator
+${windows_private_ip}    windows
 ${kali_private_ip}       kali
 HOSTS
 
