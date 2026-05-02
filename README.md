@@ -126,8 +126,6 @@ The SSH private key (`rs-rsa-key.pem`) lives at the repo root; `terraform.tfvars
 
 ## License
 
-MIT.
-
 ```
 MIT License
 
@@ -151,9 +149,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
-
----
-
-## Contributing
-
-Issues and PRs welcome. The wiki is a separate Git repo (`redStack.wiki.git`); clone it locally to edit pages directly. Screenshot and GIF placeholders throughout the wiki are filled in over time. If you've taken a useful capture of a redStack workflow, contributions there are especially welcome.
