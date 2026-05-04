@@ -142,9 +142,7 @@ chown -R admin:admin /home/admin/.sliver-client
 chmod 600 /home/admin/.sliver-client/configs/admin.cfg
 echo "[+] sliver-client is ready for admin user"
 
-# Alias sliver-client to always pass --config so the profile picker is never shown
-echo "alias sliver-client='sliver-client --config /home/admin/.sliver-client/configs/admin.cfg'" \
-    >> /home/admin/.bashrc
+# With only one .cfg in configs/, sliver-client auto-selects it — no alias needed.
 
 # Create HTTP C2 profile with the redirector validation header pre-configured
 echo "[*] Creating redstack HTTP C2 profile..."
