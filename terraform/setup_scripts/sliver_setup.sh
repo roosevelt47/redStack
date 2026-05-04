@@ -15,11 +15,9 @@ C2_HEADER_NAME="${c2_header_name}"
 C2_HEADER_VALUE="${c2_header_value}"
 
 # Set hostname
-echo "[*] Setting hostname..."
 hostnamectl set-hostname sliver
 
 # Configure /etc/hosts for lab machines
-echo "[*] Configuring /etc/hosts..."
 cat >> /etc/hosts << HOSTS
 
 # redStack lab hosts
@@ -33,12 +31,9 @@ ${kali_private_ip}       kali
 HOSTS
 
 # Update system
-echo "[*] Updating system packages..."
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
 
-# Install dependencies
-echo "[*] Installing dependencies..."
 apt-get install -y \
     curl \
     git \
@@ -49,7 +44,6 @@ apt-get install -y \
     jq
 
 # Configure SSH password authentication for Guacamole access
-echo "[*] Configuring SSH authentication..."
 echo "admin:$SSH_PASSWORD" | chpasswd
 mkdir -p /home/admin
 chown admin:admin /home/admin
@@ -69,7 +63,6 @@ SSHCONF
 systemctl restart sshd
 
 # Configure UFW firewall
-echo "[*] Configuring firewall rules..."
 ufw --force reset
 ufw default deny incoming
 ufw default allow outgoing
@@ -80,27 +73,21 @@ ufw allow 31337/tcp comment 'Sliver multiplexer'
 ufw --force enable
 
 # Install Sliver C2
-echo "[*] Installing Sliver C2 framework..."
 curl https://sliver.sh/install | sudo bash
 
 # Wait for installation to complete
 sleep 10
 
 # The Sliver install script places the server binary in /root — symlink it into PATH
-echo "[*] Symlinking sliver-server into /usr/local/bin..."
 if [ -f /root/sliver-server ]; then
     ln -sf /root/sliver-server /usr/local/bin/sliver-server
-    echo "[+] sliver-server symlinked to /usr/local/bin/sliver-server"
 else
     echo "[!] WARNING: /root/sliver-server not found — install may have failed"
 fi
 
-# Verify installation
-echo "[*] Verifying Sliver installation..."
-which sliver-server && echo "[+] Sliver server binary found at $(which sliver-server)" || echo "[!] WARNING: Sliver binary not in PATH"
+which sliver-server > /dev/null || echo "[!] WARNING: Sliver binary not in PATH"
 
 # Set UMask=0022 on Sliver service so generated implants are world-readable (no chmod needed)
-echo "[*] Configuring Sliver service umask..."
 mkdir -p /etc/systemd/system/sliver.service.d/
 cat > /etc/systemd/system/sliver.service.d/umask.conf << 'UMASKCONF'
 [Service]
@@ -108,12 +95,10 @@ UMask=0022
 UMASKCONF
 
 # Ensure Sliver service is enabled and running
-echo "[*] Enabling and starting Sliver service..."
 systemctl daemon-reload
-systemctl enable sliver --now && echo "[+] Sliver service enabled and started" || echo "[!] WARNING: Could not start sliver service"
+systemctl enable sliver --now || echo "[!] WARNING: Could not start sliver service"
 
 # Wait for Sliver daemon to be ready on port 31337
-echo "[*] Waiting for Sliver daemon to be ready..."
 for i in $(seq 1 30); do
     if ss -tlnp | grep -q ':31337'; then
         echo "[+] Sliver daemon ready on port 31337"
@@ -125,27 +110,21 @@ done
 
 # Wipe all auto-generated configs from the Sliver installer so only ours exists.
 # If multiple .cfg files are present, sliver-client shows a profile picker prompt.
-echo "[*] Clearing installer-generated operator configs..."
 rm -rf /home/admin/.sliver-client/configs/
 rm -rf /root/.sliver-client/configs/
 
 # Generate Sliver operator config for the admin identity (matches SSH user, lab convention)
-echo "[*] Generating Sliver operator config for admin..."
 sliver-server operator --name admin --lhost localhost --save /root/admin.cfg --permissions all
-echo "[+] Operator config saved to /root/admin.cfg"
 
 # Install config so admin can run sliver-client immediately on login
-echo "[*] Installing Sliver operator config for admin user..."
 mkdir -p /home/admin/.sliver-client/configs
 cp /root/admin.cfg /home/admin/.sliver-client/configs/admin.cfg
 chown -R admin:admin /home/admin/.sliver-client
 chmod 600 /home/admin/.sliver-client/configs/admin.cfg
-echo "[+] sliver-client is ready for admin user"
 
 # With only one .cfg in configs/, sliver-client auto-selects it — no alias needed.
 
 # Create HTTP C2 profile with the redirector validation header pre-configured
-echo "[*] Creating redstack HTTP C2 profile..."
 jq -n \
   --arg header_name "$C2_HEADER_NAME" \
   --arg header_value "$C2_HEADER_VALUE" \
@@ -175,7 +154,6 @@ jq -n \
     }
   }' > /home/admin/redstack-c2-profile.json
 chmod 644 /home/admin/redstack-c2-profile.json
-echo "[+] C2 profile written to /home/admin/redstack-c2-profile.json"
 
 # Create operator config generation script
 cat > /root/generate_operator_config.sh << 'OPSCRIPT'
@@ -227,4 +205,3 @@ QUICKSTART
 chmod +x /root/sliver_quickstart.sh
 
 echo "===== Sliver C2 Server Setup Completed $(date) ====="
-echo "===== Run /root/sliver_quickstart.sh for usage instructions ====="

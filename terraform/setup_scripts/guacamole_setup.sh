@@ -23,12 +23,9 @@ KALI_PRIVATE_IP="${kali_private_ip}"
 KALI_DEPLOYMENT_MODE="${kali_deployment_mode}"
 
 # Update system
-echo "[*] Updating system packages..."
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
 
-# Install dependencies
-echo "[*] Installing Docker, Nginx, and utilities..."
 apt-get install -y \
     docker.io \
     docker-compose \
@@ -47,19 +44,15 @@ systemctl start docker
 usermod -aG docker admin
 
 # Create Guacamole directory structure
-echo "[*] Setting up Guacamole directory structure..."
 mkdir -p /opt/guacamole/{postgres,config}
 cd /opt/guacamole
 
 # Initialize PostgreSQL schema
-echo "[*] Generating PostgreSQL initialization script..."
 docker run --rm guacamole/guacamole /opt/guacamole/bin/initdb.sh --postgresql > initdb.sql
 
 # Generate random DB password
 DB_PASSWORD=$(openssl rand -base64 16)
 
-# Create docker-compose.yml
-echo "[*] Creating docker-compose configuration..."
 cat > docker-compose.yml <<EOF
 version: '3'
 
@@ -114,12 +107,10 @@ EOF
 
 # Create guac drive share directory BEFORE docker-compose so Docker doesn't create it as root
 # guacd runs as a non-root user in the container and needs write access to /drive
-echo "[*] Creating guac drive share directory..."
 mkdir -p /drive
 chmod 777 /drive
 
 # Start Guacamole containers
-echo "[*] Starting Guacamole containers..."
 docker-compose up -d
 
 # Wait for Guacamole to be ready
@@ -127,7 +118,6 @@ echo "[*] Waiting for Guacamole containers to start..."
 sleep 10
 
 # Configure Nginx reverse proxy with self-signed SSL
-echo "[*] Configuring Nginx reverse proxy..."
 cat > /etc/nginx/sites-available/guacamole <<EOF
 server {
     listen 80;
@@ -162,7 +152,6 @@ server {
 EOF
 
 # Generate self-signed certificate
-echo "[*] Generating self-signed SSL certificate..."
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
     -keyout /etc/ssl/private/guacamole-selfsigned.key \
     -out /etc/ssl/certs/guacamole-selfsigned.crt \
@@ -194,7 +183,6 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
 done
 
 # Change default Guacamole admin password using API
-echo "[*] Changing default Guacamole admin password..."
 IMDS_TOKEN_V2=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
 PUBLIC_IP=$(curl -s -H "X-aws-ec2-metadata-token: $IMDS_TOKEN_V2" http://169.254.169.254/latest/meta-data/public-ipv4)
 
@@ -221,8 +209,6 @@ if [ -n "$TOKEN" ]; then
     fi
 
     if [ -n "$TOKEN" ]; then
-    # Create RDP connection to Windows client (use jq to safely escape password in JSON)
-    echo "[*] Creating RDP connection to Windows client..."
     RDP_JSON=$(jq -n \
         --arg host "$WINDOWS_PRIVATE_IP" \
         --arg user "$WINDOWS_USERNAME" \
@@ -253,8 +239,6 @@ if [ -n "$TOKEN" ]; then
         -H "Content-Type: application/json" \
         -d "$RDP_JSON"
 
-    # Create SSH connection to Mythic Team Server
-    echo "[*] Creating SSH connection to Mythic Team Server..."
     curl -s -X POST "http://localhost:8080/guacamole/api/session/data/postgresql/connections?token=$TOKEN" \
         -H "Content-Type: application/json" \
         -d "{
@@ -277,7 +261,6 @@ if [ -n "$TOKEN" ]; then
     # Create SSH connection to Guacamole Server (use private IP, not localhost, because guacd runs in Docker)
     IMDS_TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
     GUAC_PRIVATE_IP=$(curl -s -H "X-aws-ec2-metadata-token: $IMDS_TOKEN" http://169.254.169.254/latest/meta-data/local-ipv4)
-    echo "[*] Creating SSH connection to Guacamole Server ($GUAC_PRIVATE_IP)..."
     curl -s -X POST "http://localhost:8080/guacamole/api/session/data/postgresql/connections?token=$TOKEN" \
         -H "Content-Type: application/json" \
         -d "{
@@ -297,8 +280,6 @@ if [ -n "$TOKEN" ]; then
             }
         }"
 
-    # Create SSH connection to Redirector Server
-    echo "[*] Creating SSH connection to Redirector Server..."
     curl -s -X POST "http://localhost:8080/guacamole/api/session/data/postgresql/connections?token=$TOKEN" \
         -H "Content-Type: application/json" \
         -d "{
@@ -318,8 +299,6 @@ if [ -n "$TOKEN" ]; then
             }
         }"
 
-    # Create SSH connection to Sliver C2 Server
-    echo "[*] Creating SSH connection to Sliver C2 Server..."
     curl -s -X POST "http://localhost:8080/guacamole/api/session/data/postgresql/connections?token=$TOKEN" \
         -H "Content-Type: application/json" \
         -d "{
@@ -339,8 +318,6 @@ if [ -n "$TOKEN" ]; then
             }
         }"
 
-    # Create SSH connection to Havoc C2 Server
-    echo "[*] Creating SSH connection to Havoc C2 Server..."
     curl -s -X POST "http://localhost:8080/guacamole/api/session/data/postgresql/connections?token=$TOKEN" \
         -H "Content-Type: application/json" \
         -d "{
@@ -360,8 +337,6 @@ if [ -n "$TOKEN" ]; then
             }
         }"
 
-    # Create VNC connection to Havoc C2 Desktop (GUI client)
-    echo "[*] Creating VNC connection to Havoc C2 Desktop..."
     curl -s -X POST "http://localhost:8080/guacamole/api/session/data/postgresql/connections?token=$TOKEN" \
         -H "Content-Type: application/json" \
         -d "{
@@ -379,8 +354,6 @@ if [ -n "$TOKEN" ]; then
             }
         }"
 
-    # Create SSH connection to Kali Operator
-    echo "[*] Creating SSH connection to Kali Operator..."
     curl -s -X POST "http://localhost:8080/guacamole/api/session/data/postgresql/connections?token=$TOKEN" \
         -H "Content-Type: application/json" \
         -d "{
@@ -404,7 +377,6 @@ if [ -n "$TOKEN" ]; then
     # In headless mode, the operator can register this connection later via
     # the Kali helper script /usr/local/sbin/kali-go-gui.
     if [ "$KALI_DEPLOYMENT_MODE" = "gui" ]; then
-        echo "[*] Creating RDP connection to Kali Operator desktop..."
         curl -s -X POST "http://localhost:8080/guacamole/api/session/data/postgresql/connections?token=$TOKEN" \
             -H "Content-Type: application/json" \
             -d "{

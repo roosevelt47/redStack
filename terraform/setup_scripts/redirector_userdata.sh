@@ -13,11 +13,9 @@ echo "===== Redirector Bootstrap Started $(date) ====="
 SSH_PASSWORD="${ssh_password}"
 
 # Set hostname
-echo "[*] Setting hostname..."
 hostnamectl set-hostname redirector
 
 # Configure /etc/hosts for lab machines
-echo "[*] Configuring /etc/hosts..."
 cat >> /etc/hosts << HOSTS
 
 # redStack lab hosts
@@ -31,7 +29,6 @@ ${kali_private_ip}       kali
 HOSTS
 
 # Set SSH password for Guacamole access
-echo "[*] Configuring SSH..."
 echo "admin:$SSH_PASSWORD" | chpasswd
 mkdir -p /home/admin
 chown admin:admin /home/admin
@@ -58,11 +55,8 @@ SSHCONF
 systemctl restart sshd
 
 # Decode and run the setup script
-echo "[*] Extracting setup script..."
 echo "${setup_script_b64}" | base64 -d | gunzip > /root/redirector_setup.sh
 chmod +x /root/redirector_setup.sh
-
-echo "[*] Running redirector setup..."
 bash /root/redirector_setup.sh
 
 echo "===== Redirector Bootstrap Complete $(date) ====="

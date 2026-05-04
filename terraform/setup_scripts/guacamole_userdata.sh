@@ -13,11 +13,9 @@ echo "===== Guacamole Bootstrap Started $(date) ====="
 SSH_PASSWORD="${ssh_password}"
 
 # Set hostname
-echo "[*] Setting hostname..."
 hostnamectl set-hostname guac
 
 # Configure /etc/hosts for lab machines
-echo "[*] Configuring /etc/hosts..."
 cat >> /etc/hosts << HOSTS
 
 # redStack lab hosts
@@ -31,7 +29,6 @@ ${kali_private_ip}       kali
 HOSTS
 
 # Set SSH password for Guacamole access
-echo "[*] Configuring SSH..."
 echo "admin:$SSH_PASSWORD" | chpasswd
 mkdir -p /home/admin
 chown admin:admin /home/admin
@@ -51,11 +48,8 @@ SSHCONF
 systemctl restart sshd
 
 # Decode and run the setup script
-echo "[*] Extracting setup script..."
 echo "${setup_script_b64}" | base64 -d | gunzip > /root/guacamole_setup.sh
 chmod +x /root/guacamole_setup.sh
-
-echo "[*] Running Guacamole setup..."
 bash /root/guacamole_setup.sh
 
 echo "===== Guacamole Bootstrap Complete $(date) ====="

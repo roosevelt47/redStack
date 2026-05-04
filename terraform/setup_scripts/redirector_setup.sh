@@ -47,7 +47,6 @@ fi
 # CREATE TEST SCRIPT EARLY (available even if setup fails partway)
 # ============================================================================
 
-echo "[*] Creating connectivity test script..."
 cat > /root/test_redirector.sh << 'TESTSCRIPT'
 #!/bin/bash
 echo "===== Redirector Connectivity Test ====="
@@ -102,39 +101,19 @@ chmod +x /root/test_redirector.sh
 cp /root/test_redirector.sh /home/admin/test_redirector.sh
 chmod +x /home/admin/test_redirector.sh
 
-# Update package lists
-echo "[*] Updating package lists..."
 apt-get update
-
-# Install Apache and core utilities
-echo "[*] Installing Apache web server and utilities..."
 apt-get install -y apache2 openssl curl ufw net-tools
 
-# Install OpenVPN client if VPN feature is enabled
 if [ "$ENABLE_VPN" = "true" ]; then
-    echo "[*] Installing OpenVPN client..."
     apt-get install -y openvpn
 fi
 
-# Install SSL development libraries
-echo "[*] Installing SSL packages..."
-apt-get install -y libssl-dev ca-certificates
-
-# Install Certbot for SSL certificate management
-echo "[*] Installing Certbot for SSL..."
-apt-get install -y certbot python3-certbot-apache
-
-# Install OpenJDK 17
-echo "[*] Installing OpenJDK 17..."
-apt-get install -y openjdk-17-jdk
+apt-get install -y libssl-dev ca-certificates certbot python3-certbot-apache openjdk-17-jdk
 
 # Enable IP forwarding and UFW forward policy if VPN routing is enabled
 if [ "$ENABLE_VPN" = "true" ]; then
-    echo "[*] Enabling IP forwarding for VPN routing..."
     echo 'net.ipv4.ip_forward = 1' > /etc/sysctl.d/99-vpn-forward.conf
     sysctl -p /etc/sysctl.d/99-vpn-forward.conf
-
-    echo "[*] Setting UFW default forward policy to ACCEPT..."
     sed -i 's/DEFAULT_FORWARD_POLICY="DROP"/DEFAULT_FORWARD_POLICY="ACCEPT"/' /etc/default/ufw
     ufw reload
 fi
@@ -142,8 +121,7 @@ fi
 # Enable Apache service
 systemctl enable apache2
 
-# Enable Apache modules via a2enmod
-echo "[*] Enabling Apache modules..."
+# Enable Apache modules
 a2enmod rewrite
 a2enmod ssl
 a2enmod proxy
@@ -155,15 +133,12 @@ a2enmod proxy_balancer
 a2enmod proxy_html
 a2enmod lbmethod_byrequests
 
-# Disable directory listing
-echo "[*] Disabling directory listing..."
 a2dismod autoindex -f
 
 # Restart Apache to load newly enabled modules
 systemctl restart apache2
 
 # Configure UFW firewall
-echo "[*] Configuring firewall rules..."
 ufw --force reset
 ufw default deny incoming
 ufw default allow outgoing
@@ -172,7 +147,6 @@ ufw allow 80/tcp
 ufw allow 443/tcp
 
 if [ "$ENABLE_VPN" = "true" ]; then
-    echo "[*] Adding VPN routing firewall rules..."
     ufw allow in from $MAIN_VPC_CIDR
     sed -i 's/DEFAULT_FORWARD_POLICY="DROP"/DEFAULT_FORWARD_POLICY="ACCEPT"/' /etc/default/ufw
 fi
@@ -181,7 +155,6 @@ ufw --force enable
 
 # Generate self-signed SSL certificate (placeholder until Certbot is run)
 # Always includes the public IP as a SAN so IP-based HTTPS connections work
-echo "[*] Generating self-signed SSL certificate (CN=$CERT_CN, SAN=$CERT_SAN)..."
 mkdir -p /etc/apache2/ssl
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
     -keyout /etc/apache2/ssl/redirector.key \
@@ -211,7 +184,6 @@ fi
 # DECOY PAGE (served when header validation fails)
 # ============================================================================
 
-echo "[*] Creating decoy landing page..."
 mkdir -p /var/www/html/decoy
 cat > /var/www/html/decoy/index.html << 'DECOYHTML'
 <!DOCTYPE html>
@@ -253,7 +225,6 @@ HTACCESS
 # Header validation + URI prefix routing, decoy fallback
 # ============================================================================
 
-echo "[*] Configuring consolidated HTTP VirtualHost..."
 cat > /etc/apache2/sites-available/redirector-http.conf << 'APACHECONF'
 <VirtualHost *:80>
     ServerName DOMAIN_PLACEHOLDER
@@ -300,7 +271,6 @@ APACHECONF
 # Header validation + URI prefix routing, decoy fallback
 # ============================================================================
 
-echo "[*] Configuring consolidated HTTPS VirtualHost..."
 cat > /etc/apache2/sites-available/redirector-https.conf << 'APACHECONF'
 <VirtualHost *:443>
     ServerName DOMAIN_PLACEHOLDER
@@ -356,8 +326,6 @@ APACHECONF
 # REPLACE PLACEHOLDERS WITH ACTUAL VALUES
 # ============================================================================
 
-echo "[*] Substituting configuration values..."
-
 # HTTP config
 sed -i "s|DOMAIN_PLACEHOLDER|$DOMAIN_NAME|g" /etc/apache2/sites-available/redirector-http.conf
 sed -i "s|MYTHIC_IP_PLACEHOLDER|$MYTHIC_PRIVATE_IP|g" /etc/apache2/sites-available/redirector-http.conf
@@ -381,14 +349,12 @@ sed -i "s|HEADER_NAME_PLACEHOLDER|$C2_HEADER_NAME|g" /etc/apache2/sites-availabl
 sed -i "s|HEADER_VALUE_PLACEHOLDER|$C2_HEADER_VALUE|g" /etc/apache2/sites-available/redirector-https.conf
 
 # Disable default site and enable redirector sites
-echo "[*] Enabling VirtualHost sites..."
 a2dissite 000-default.conf
 a2ensite redirector-http.conf
 a2ensite redirector-https.conf
 
 # Harden Apache - hide version info
 SECURITY_CONF="/etc/apache2/conf-available/security.conf"
-echo "[*] Applying security configurations..."
 sed -i "s/ServerSignature On/ServerSignature Off/g" "$SECURITY_CONF"
 sed -i "s/ServerTokens OS/ServerTokens Prod/g" "$SECURITY_CONF"
 
@@ -396,7 +362,6 @@ sed -i "s/ServerTokens OS/ServerTokens Prod/g" "$SECURITY_CONF"
 apache2ctl configtest
 
 # Restart Apache to apply all changes
-echo "[*] Restarting Apache..."
 systemctl restart apache2
 
 # ============================================================================
@@ -404,7 +369,6 @@ systemctl restart apache2
 # ============================================================================
 
 if [ "$ENABLE_VPN" = "true" ]; then
-    echo "[*] Creating VPN systemd service..."
     mkdir -p /home/admin/vpn
     chown admin:admin /home/admin/vpn
 
@@ -478,7 +442,6 @@ fi
 # ============================================================================
 # MOTD - Operator login banner
 # ============================================================================
-echo "[*] Creating MOTD..."
 
 cat > /etc/update-motd.d/99-redstack << MOTDEOF
 #!/bin/sh
@@ -530,59 +493,4 @@ MOTDEOF
 chmod +x /etc/update-motd.d/99-redstack
 > /etc/motd
 
-echo ""
-echo "===== Redirector Setup Complete ====="
-echo "===== Public IP: $PUBLIC_IP ====="
-echo ""
-echo "Installed components:"
-echo "  - Apache2 with modules: rewrite, ssl, proxy, proxy_http, headers, deflate, proxy_balancer, proxy_html"
-if [ "$NO_DOMAIN" = "false" ]; then
-echo "  - Certbot (run: sudo certbot --apache -d $DOMAIN_NAME)"
-fi
-echo "  - OpenJDK 17"
-echo "  - UFW firewall (ports 22, 80, 443)"
-if [ "$NO_DOMAIN" = "true" ]; then
-echo "  - Self-signed SSL certificate (CN=$PUBLIC_IP, SAN=IP:$PUBLIC_IP) - no domain configured"
-else
-echo "  - Self-signed SSL certificate (replace with Certbot)"
-fi
-echo "  - Decoy page: CloudEdge CDN maintenance page"
-if [ "$ENABLE_REDIRECT_RULES" = "true" ]; then
-echo "  - redirect.rules: curi0usJack OPSEC rules (AV/scanner/TOR blocking)"
-else
-echo "  - redirect.rules: DISABLED (lab/CTF mode)"
-fi
-echo ""
-echo "Header validation (required for C2 proxy):"
-echo "  Header:  $C2_HEADER_NAME: $C2_HEADER_VALUE"
-echo ""
-echo "URI routing (requires correct header, ports 80/443):"
-echo "  $MYTHIC_URI_PREFIX/ -> Mythic  ($MYTHIC_PRIVATE_IP)"
-echo "  $SLIVER_URI_PREFIX/ -> Sliver  ($SLIVER_PRIVATE_IP)"
-echo "  $HAVOC_URI_PREFIX/ -> Havoc   ($HAVOC_PRIVATE_IP)"
-echo ""
-echo "Requests without the correct header get the decoy page."
-echo "Configure each C2 agent's HTTP profile with the URI prefix AND custom header."
-echo ""
-if [ "$NO_DOMAIN" = "false" ]; then
-echo "To obtain a Let's Encrypt SSL certificate, run:"
-echo "  sudo certbot --apache -d $DOMAIN_NAME"
-echo ""
-else
-echo "No domain configured. Self-signed cert with IP SAN is active."
-echo "C2 agents connecting to https://$PUBLIC_IP will accept the cert."
-echo "To add a domain later, set redirector_domain in terraform.tfvars and re-apply."
-echo ""
-fi
-echo "To verify setup, run:"
-echo "  sudo /home/admin/test_redirector.sh"
-
-if [ "$ENABLE_VPN" = "true" ]; then
-    echo ""
-    echo "External VPN routing (HTB/VL/PG):"
-    echo "  1. Upload .ovpn:  scp lab.ovpn admin@<redirector-ip>:~/vpn/"
-    echo "  2. Connect:       sudo systemctl start ext-vpn"
-    echo "  3. Status:        sudo systemctl status ext-vpn"
-    echo "  4. Logs:          sudo journalctl -u ext-vpn -f"
-    echo "  5. Stop:          sudo systemctl stop ext-vpn"
-fi
+echo "===== Redirector Setup Complete $(date) ====="

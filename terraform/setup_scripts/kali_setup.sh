@@ -25,12 +25,11 @@ KALI_MODE="${kali_deployment_mode}"
 #    This is the FIRST action so the rename completes before any operator
 #    can successfully SSH in. The AMI's pre-baked SSH key follows the home dir.
 # ----------------------------------------------------------------------------
-echo "[*] Renaming default 'kali' user to 'admin'..."
 if id kali >/dev/null 2>&1; then
     # Rename login name and move home directory contents
     usermod -l admin -d /home/admin -m kali
     # Rename the primary group to match
-    groupmod -n admin kali 2>/dev/null || echo "    (group rename skipped: 'admin' may already exist)"
+    groupmod -n admin kali 2>/dev/null || true
     # Relocate cloud-init's per-user sudoers entry if present
     if [ -f /etc/sudoers.d/90-cloud-init-users ]; then
         sed -i 's/\bkali\b/admin/g' /etc/sudoers.d/90-cloud-init-users
@@ -39,7 +38,6 @@ if id kali >/dev/null 2>&1; then
         sed -i 's/\bkali\b/admin/g' /etc/sudoers.d/kali
         mv /etc/sudoers.d/kali /etc/sudoers.d/admin
     fi
-    echo "[+] Renamed kali -> admin"
 else
     echo "[!] No 'kali' user found. AMI may have changed; admin user must be created manually."
 fi
@@ -47,10 +45,8 @@ fi
 # ----------------------------------------------------------------------------
 # 2. Hostname + /etc/hosts
 # ----------------------------------------------------------------------------
-echo "[*] Setting hostname..."
 hostnamectl set-hostname kali
 
-echo "[*] Configuring /etc/hosts..."
 cat >> /etc/hosts << HOSTS
 
 # redStack lab hosts
@@ -68,10 +64,7 @@ HOSTS
 #    No `apt upgrade` (Kali rolling churns and can break tools).
 #    Heavy tooling is opt-in via /usr/local/sbin/install-kali-tools.
 # ----------------------------------------------------------------------------
-echo "[*] Updating apt indexes..."
 apt-get update
-
-echo "[*] Installing minimal baseline packages..."
 DEBIAN_FRONTEND=noninteractive apt-get install -y \
     curl \
     wget \
@@ -85,7 +78,6 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y \
 # ----------------------------------------------------------------------------
 # 4. SSH password auth for Guacamole access (private CIDRs only)
 # ----------------------------------------------------------------------------
-echo "[*] Configuring admin password and SSH..."
 echo "admin:$SSH_PASSWORD" | chpasswd
 
 cat >> /etc/ssh/sshd_config << 'SSHCONF'
@@ -104,7 +96,6 @@ systemctl restart ssh
 # ----------------------------------------------------------------------------
 # 5. UFW firewall
 # ----------------------------------------------------------------------------
-echo "[*] Configuring UFW firewall..."
 ufw --force reset
 ufw default deny incoming
 ufw default allow outgoing
@@ -116,7 +107,6 @@ ufw --force enable
 # 6. install-kali-tools helper (curated 21-package AD/enum lineup)
 #    Operator runs `sudo install-kali-tools` after first SSH login.
 # ----------------------------------------------------------------------------
-echo "[*] Installing /usr/local/sbin/install-kali-tools helper..."
 cat > /usr/local/sbin/install-kali-tools << 'TOOLSCRIPT'
 #!/bin/bash
 # install-kali-tools - One-shot installer for the redStack curated tool lineup.
@@ -238,7 +228,6 @@ echo "[*] Running install-kali-tools at setup (8-12 min)..."
 # ----------------------------------------------------------------------------
 # 7. kali-go-gui helper (post-deploy headless -> GUI conversion)
 # ----------------------------------------------------------------------------
-echo "[*] Installing /usr/local/sbin/kali-go-gui helper..."
 cat > /usr/local/sbin/kali-go-gui << 'GUISCRIPT'
 #!/bin/bash
 # kali-go-gui - Convert a headless Kali deployment to GUI without re-running terraform.
@@ -298,7 +287,6 @@ chmod 755 /usr/local/sbin/kali-go-gui
 # ----------------------------------------------------------------------------
 # 8. MOTD banner (shown on every SSH login)
 # ----------------------------------------------------------------------------
-echo "[*] Installing MOTD banner..."
 cat > /etc/update-motd.d/99-kali-mode << MOTD
 #!/bin/bash
 cat << BANNER
@@ -330,7 +318,6 @@ chown admin:admin /home/admin/.hushlogin
 # 9. GUI install if mode == gui
 # ----------------------------------------------------------------------------
 if [ "$KALI_MODE" = "gui" ]; then
-    echo "[*] kali_deployment_mode=gui: installing XFCE + XRDP at boot..."
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
         kali-desktop-xfce \
         xrdp
@@ -345,8 +332,6 @@ XSESSION
 
     systemctl enable xrdp
     systemctl restart xrdp
-    echo "[+] XFCE + XRDP installed and enabled."
 fi
 
 echo "===== Kali Operator Setup Completed $(date) ====="
-echo "===== SSH as admin@kali. Run 'sudo install-kali-tools' to provision the tool suite. ====="
