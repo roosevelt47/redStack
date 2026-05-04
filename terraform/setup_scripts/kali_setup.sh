@@ -231,6 +231,10 @@ echo "All 21 curated tools installed."
 TOOLSCRIPT
 chmod 755 /usr/local/sbin/install-kali-tools
 
+# Run the installer now so tools are ready on first operator login.
+echo "[*] Running install-kali-tools at setup (8-12 min)..."
+/usr/local/sbin/install-kali-tools || true
+
 # ----------------------------------------------------------------------------
 # 7. kali-go-gui helper (post-deploy headless -> GUI conversion)
 # ----------------------------------------------------------------------------
@@ -303,7 +307,8 @@ cat << BANNER
 |  redStack KALI WORKSTATION                                          |
 +=====================================================================+
    Mode:           $(echo "${kali_deployment_mode}" | tr '[:lower:]' '[:upper:]')
-   Install tools:  sudo install-kali-tools     (21-package AD/enum lineup)
+   Tools:          21-tool AD/enum suite (installed at setup)
+   Refresh/fix:    sudo install-kali-tools
    Convert to GUI: sudo kali-go-gui            (only needed in HEADLESS mode)
    Lab hosts:      kali, guac, mythic, sliver, havoc, redirector, windows
 +=====================================================================+
