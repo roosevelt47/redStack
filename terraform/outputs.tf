@@ -198,6 +198,6 @@ output "network_architecture" {
 }
 
 resource "local_file" "deployment_info" {
-  filename = "${path.root}/deployment_info.txt"
+  filename = "${path.root}/../deployment_info.txt"
   content  = "${local.deployment_info_content}\n${local.network_architecture_content}"
 }
