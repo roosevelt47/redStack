@@ -123,10 +123,11 @@ for i in $(seq 1 30); do
     sleep 2
 done
 
-# Remove auto-generated configs from Sliver installer
-echo "[*] Removing installer-generated operator configs..."
-rm -f /home/admin/.sliver-client/configs/admin_localhost.cfg
-rm -f /root/.sliver-client/configs/root_localhost.cfg
+# Wipe all auto-generated configs from the Sliver installer so only ours exists.
+# If multiple .cfg files are present, sliver-client shows a profile picker prompt.
+echo "[*] Clearing installer-generated operator configs..."
+rm -rf /home/admin/.sliver-client/configs/
+rm -rf /root/.sliver-client/configs/
 
 # Generate Sliver operator config for the admin identity (matches SSH user, lab convention)
 echo "[*] Generating Sliver operator config for admin..."
@@ -140,6 +141,10 @@ cp /root/admin.cfg /home/admin/.sliver-client/configs/admin.cfg
 chown -R admin:admin /home/admin/.sliver-client
 chmod 600 /home/admin/.sliver-client/configs/admin.cfg
 echo "[+] sliver-client is ready for admin user"
+
+# Alias sliver-client to always pass --config so the profile picker is never shown
+echo "alias sliver-client='sliver-client --config /home/admin/.sliver-client/configs/admin.cfg'" \
+    >> /home/admin/.bashrc
 
 # Create HTTP C2 profile with the redirector validation header pre-configured
 echo "[*] Creating redstack HTTP C2 profile..."
