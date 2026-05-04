@@ -119,7 +119,8 @@ cat > /usr/local/sbin/install-kali-tools << 'TOOLSCRIPT'
 #   apt  (17): nmap, enum4linux-ng, smbmap, mitm6, ldap-utils, seclists,
 #              gobuster, coercer, impacket-scripts, netexec, evil-winrm,
 #              bloodhound.py, certipy-ad, responder, hashcat, john, pipx
-#   pipx  (2): pre2k, adidnsdump
+#   pipx  (1): adidnsdump
+#   pipx+git(1): pre2k (not on PyPI — installed from github.com/garrettfoster13/pre2k)
 #   binary(2): kerbrute, windapsearch  (GitHub release binaries)
 
 if [ "$(id -u)" -ne 0 ]; then
@@ -166,20 +167,27 @@ for pkg in "$${PACKAGES[@]}"; do
 done
 
 
-# ---- Non-apt tools: pipx (pre2k, adidnsdump) and GitHub binaries (kerbrute, windapsearch) ----
+# ---- Non-apt tools: pipx and GitHub binaries ----
 echo ""
 echo "===== Non-apt tools ====="
 
 export PATH="$${PATH}:/root/.local/bin"
 
-for tool in pre2k adidnsdump; do
-    echo "----- $${tool} (pipx) -----"
-    if pipx install --force "$${tool}" > /dev/null 2>&1; then
-        INSTALLED+=("$${tool}")
-    else
-        FAILED+=("$${tool}")
-    fi
-done
+# adidnsdump is on PyPI
+echo "----- adidnsdump (pipx) -----"
+if pipx install --force adidnsdump > /dev/null 2>&1; then
+    INSTALLED+=("adidnsdump")
+else
+    FAILED+=("adidnsdump")
+fi
+
+# pre2k is NOT on PyPI — install from GitHub
+echo "----- pre2k (pipx from github) -----"
+if pipx install --force "git+https://github.com/garrettfoster13/pre2k" > /dev/null 2>&1; then
+    INSTALLED+=("pre2k")
+else
+    FAILED+=("pre2k")
+fi
 
 echo "----- kerbrute (github binary) -----"
 KERBRUTE_URL=$(curl -sf https://api.github.com/repos/ropnop/kerbrute/releases/latest \
