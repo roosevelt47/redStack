@@ -121,19 +121,16 @@ cat > /usr/local/sbin/install-kali-tools << 'TOOLSCRIPT'
 #!/bin/bash
 # install-kali-tools - One-shot installer for the redStack curated tool lineup.
 #
-# Twenty-one packages, weighted toward Active Directory enumeration and attack.
-# Idempotent: safe to re-run; apt will upgrade existing packages and skip
-# already-current ones. Does not use `set -e` so a single failed package does
-# not abort the rest of the batch.
+# Twenty-one tools, weighted toward Active Directory enumeration and attack.
+# Idempotent: safe to re-run. Does not use `set -e` so a single failure does
+# not abort the rest.
 #
-# Bucket breakdown:
-#   Network enum (4): nmap, enum4linux-ng, smbmap, mitm6
-#   AD enum     (4): pre2k, ldap-utils, windapsearch, adidnsdump
-#   Wordlists/web (2): seclists, gobuster
-#   AD attack   (7): coercer, impacket-scripts, netexec, evil-winrm,
-#                    bloodhound.py, kerbrute, certipy-ad
-#   Cred/relay  (3): responder, hashcat, john
-#   Meta        (1): pipx (PEP 668-compliant Python tool installer)
+# Install methods:
+#   apt  (17): nmap, enum4linux-ng, smbmap, mitm6, ldap-utils, seclists,
+#              gobuster, coercer, impacket-scripts, netexec, evil-winrm,
+#              bloodhound.py, certipy-ad, responder, hashcat, john, pipx
+#   pipx  (2): pre2k, adidnsdump
+#   binary(2): kerbrute, windapsearch  (GitHub release binaries)
 
 if [ "$(id -u)" -ne 0 ]; then
     echo "ERROR: run as root (sudo install-kali-tools)" >&2
@@ -145,18 +142,14 @@ PACKAGES=(
     enum4linux-ng
     smbmap
     mitm6
-    pre2k
     seclists
     gobuster
     coercer
     ldap-utils
-    windapsearch
-    adidnsdump
     impacket-scripts
     netexec
     evil-winrm
     bloodhound.py
-    kerbrute
     certipy-ad
     responder
     hashcat
@@ -165,7 +158,7 @@ PACKAGES=(
 )
 
 echo "[*] redStack curated Kali tool installer"
-echo "[*] Installing $${#PACKAGES[@]} packages. Estimated time: 8-12 minutes."
+echo "[*] Installing 21 tools: $${#PACKAGES[@]} via apt, 2 via pipx, 2 via GitHub binary."
 echo ""
 
 apt-get update
@@ -182,19 +175,59 @@ for pkg in "$${PACKAGES[@]}"; do
     fi
 done
 
+
+# ---- Non-apt tools: pipx (pre2k, adidnsdump) and GitHub binaries (kerbrute, windapsearch) ----
+echo ""
+echo "===== Non-apt tools ====="
+
+export PATH="$${PATH}:/root/.local/bin"
+
+for tool in pre2k adidnsdump; do
+    echo "----- $${tool} (pipx) -----"
+    if pipx install --force "$${tool}" > /dev/null 2>&1; then
+        INSTALLED+=("$${tool}")
+    else
+        FAILED+=("$${tool}")
+    fi
+done
+
+echo "----- kerbrute (github binary) -----"
+KERBRUTE_URL=$(curl -sf https://api.github.com/repos/ropnop/kerbrute/releases/latest \
+    | jq -r '.assets[] | select(.name == "kerbrute_linux_amd64") | .browser_download_url')
+if [ -n "$${KERBRUTE_URL}" ] \
+    && wget -q "$${KERBRUTE_URL}" -O /usr/local/bin/kerbrute \
+    && chmod 755 /usr/local/bin/kerbrute; then
+    INSTALLED+=("kerbrute")
+    echo "    -> /usr/local/bin/kerbrute"
+else
+    FAILED+=("kerbrute")
+fi
+
+echo "----- windapsearch (github binary) -----"
+WIND_URL=$(curl -sf https://api.github.com/repos/ropnop/go-windapsearch/releases/latest \
+    | jq -r '.assets[] | select(.name == "windapsearch-linux-amd64") | .browser_download_url')
+if [ -n "$${WIND_URL}" ] \
+    && wget -q "$${WIND_URL}" -O /usr/local/bin/windapsearch \
+    && chmod 755 /usr/local/bin/windapsearch; then
+    INSTALLED+=("windapsearch")
+    echo "    -> /usr/local/bin/windapsearch"
+else
+    FAILED+=("windapsearch")
+fi
+
 echo ""
 echo "===== Install summary ====="
-echo "Installed cleanly: $${#INSTALLED[@]} / $${#PACKAGES[@]}"
+echo "Installed: $${#INSTALLED[@]} / 21"
 if [ "$${#FAILED[@]}" -gt 0 ]; then
-    echo "Failed packages:"
+    echo "Failed:"
     for pkg in "$${FAILED[@]}"; do
-        echo "  - $pkg"
+        echo "  - $${pkg}"
     done
     echo ""
-    echo "Re-run the installer or check 'apt-cache policy <pkg>' to investigate."
+    echo "Re-run sudo install-kali-tools to retry failed items."
     exit 1
 fi
-echo "All curated tools installed."
+echo "All 21 curated tools installed."
 TOOLSCRIPT
 chmod 755 /usr/local/sbin/install-kali-tools
 
@@ -267,7 +300,7 @@ cat > /etc/update-motd.d/99-kali-mode << MOTD
 cat << BANNER
 
 +=====================================================================+
-|  redStack KALI OPERATOR                                             |
+|  redStack KALI WORKSTATION                                          |
 +=====================================================================+
    Mode:           $(echo "${kali_deployment_mode}" | tr '[:lower:]' '[:upper:]')
    Install tools:  sudo install-kali-tools     (21-package AD/enum lineup)
@@ -283,6 +316,10 @@ chmod 755 /etc/update-motd.d/99-kali-mode
 if [ -f /etc/update-motd.d/00-kali ]; then
     chmod -x /etc/update-motd.d/00-kali
 fi
+
+# Suppress the Kali developer "minimal install" message
+touch /home/admin/.hushlogin
+chown admin:admin /home/admin/.hushlogin
 
 # ----------------------------------------------------------------------------
 # 9. GUI install if mode == gui
