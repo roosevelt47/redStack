@@ -103,6 +103,13 @@ Write-Host "[*] Installing 7-Zip..."
 & "$env:ProgramData\chocolatey\bin\choco.exe" install 7zip -y --no-progress
 
 # ============================================================================
+# INSTALL GIT
+# ============================================================================
+
+Write-Host "[*] Installing Git..."
+& "$env:ProgramData\chocolatey\bin\choco.exe" install git -y --no-progress
+
+# ============================================================================
 # PRE-CONFIGURE MOBAXTERM SESSIONS
 # ============================================================================
 
@@ -187,12 +194,85 @@ Sliver C2 (SSH)= #109#0%sliver%22%admin%%-1%-1%%%%%0%-1%0%%%-1%-1%0%0%%1080%%0%0
 Havoc C2 (SSH)= #109#0%havoc%22%admin%%-1%-1%%%%%0%-1%0%%%-1%-1%0%0%%1080%%0%0%1%%0%%%%0%-1%-1%0%%%0#MobaFont%10%0%0%-1%15%236,236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%0%_Std_Colors_0_%80%24%0%1%-1%<none>%%0%0%-1%0%#0# #-1
 Apache Redirector (SSH)= #109#0%redirector%22%admin%%-1%-1%%%%%0%-1%0%%%-1%-1%0%0%%1080%%0%0%1%%0%%%%0%-1%-1%0%%%0#MobaFont%10%0%0%-1%15%236,236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%0%_Std_Colors_0_%80%24%0%1%-1%<none>%%0%0%-1%0%#0# #-1
 Guacamole Server (SSH)= #109#0%guac%22%admin%%-1%-1%%%%%0%-1%0%%%-1%-1%0%0%%1080%%0%0%1%%0%%%%0%-1%-1%0%%%0#MobaFont%10%0%0%-1%15%236,236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%0%_Std_Colors_0_%80%24%0%1%-1%<none>%%0%0%-1%0%#0# #-1
+Kali Linux (SSH)= #109#0%kali%22%admin%%-1%-1%%%%%0%-1%0%%%-1%-1%0%0%%1080%%0%0%1%%0%%%%0%-1%-1%0%%%0#MobaFont%10%0%0%-1%15%236,236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%0%_Std_Colors_0_%80%24%0%1%-1%<none>%%0%0%-1%0%#0# #-1
 '@
 
 # Write without BOM — MobaXterm silently rejects UTF-8 BOM and recreates a blank config
 $utf8NoBom = New-Object System.Text.UTF8Encoding $false
 [System.IO.File]::WriteAllText("$mobaDir\MobaXterm.ini", $mobaIni, $utf8NoBom)
 Write-Host "[+] MobaXterm sessions written to $mobaDir\MobaXterm.ini"
+
+# ============================================================================
+# PRE-CONFIGURE CHROMIUM BOOKMARKS
+# ============================================================================
+
+Write-Host "[*] Pre-configuring Chromium bookmarks..."
+
+$chromiumDir = "C:\Users\Administrator\AppData\Local\Chromium\User Data\Default"
+New-Item -ItemType Directory -Force -Path $chromiumDir | Out-Null
+
+$bookmarks = @'
+{
+   "checksum": "00000000000000000000000000000000",
+   "roots": {
+      "bookmark_bar": {
+         "children": [
+            {
+               "date_added": "13000000000000000",
+               "date_last_used": "0",
+               "guid": "11111111-1111-1111-1111-111111111111",
+               "id": "2",
+               "name": "Mythic C2",
+               "type": "url",
+               "url": "https://mythic:7443"
+            },
+            {
+               "date_added": "13000000000000001",
+               "date_last_used": "0",
+               "guid": "22222222-2222-2222-2222-222222222222",
+               "id": "3",
+               "name": "redStack Wiki",
+               "type": "url",
+               "url": "https://github.com/BaddKharma/redStack/wiki"
+            }
+         ],
+         "date_added": "13000000000000000",
+         "date_modified": "13000000000000000",
+         "guid": "0bc5d13f-2cba-5d74-951f-3f233fe6c908",
+         "id": "1",
+         "name": "Bookmarks bar",
+         "type": "folder"
+      },
+      "other": {
+         "children": [],
+         "date_added": "13000000000000000",
+         "date_modified": "0",
+         "guid": "82b081ec-3d0b-5e97-a7b6-c3c8e4cce5c4",
+         "id": "4",
+         "name": "Other bookmarks",
+         "type": "folder"
+      },
+      "synced": {
+         "children": [],
+         "date_added": "13000000000000000",
+         "date_modified": "0",
+         "guid": "4cf2e351-0e85-532b-bb37-df045d8f8d0f",
+         "id": "5",
+         "name": "Mobile bookmarks",
+         "type": "folder"
+      }
+   },
+   "version": 1
+}
+'@
+
+$utf8NoBom = New-Object System.Text.UTF8Encoding $false
+[System.IO.File]::WriteAllText("$chromiumDir\Bookmarks", $bookmarks, $utf8NoBom)
+
+$prefs = '{"bookmark_bar":{"show_on_all_tabs":true}}'
+[System.IO.File]::WriteAllText("$chromiumDir\Preferences", $prefs, $utf8NoBom)
+
+Write-Host "[+] Chromium bookmarks written"
 
 Write-Host "===== Windows Client Setup Completed $(Get-Date) ====="
 Write-Host "===== Use 'aws ec2 get-password-data' to retrieve Administrator password ====="

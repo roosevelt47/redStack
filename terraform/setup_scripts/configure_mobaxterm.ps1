@@ -1,6 +1,6 @@
 # configure_mobaxterm.ps1
 # Run as the user who will use MobaXterm (not necessarily Administrator)
-# Downloads and sets up pre-configured SSH sessions for the redStack lab
+# Re-applies the redStack SSH session config. Safe to run after MobaXterm reinstall.
 
 # Kill MobaXterm if running so it doesn't overwrite the config on exit
 $moba = Get-Process -Name "MobaXterm*" -ErrorAction SilentlyContinue
@@ -13,9 +13,8 @@ if ($moba) {
 $mobaDir = "$env:APPDATA\MobaXterm"
 New-Item -ItemType Directory -Force -Path $mobaDir | Out-Null
 
-# INI structure derived from a fully-initialized MobaXterm installation.
-# [Misc] must include LocalShell to suppress the first-run theme/setup wizard.
-# Sessions use '= #109#' format (space before #109# required for sessions to be recognized).
+# Sessions must be under [Bookmarks] (not [Bookmarks_0]) — MobaXterm strips the required
+# space before #109# when rewriting [Bookmarks_0] entries, making sessions invisible.
 $mobaIni = @'
 [Misc]
 PasswordsInRegistry=1
@@ -28,16 +27,6 @@ SkinName3=Windows dark theme
 DefTextEditor=<MobaTextEditor>
 StorePasswords=Ask
 AllowMultiInstances=0
-
-[Bookmarks_0]
-SubRep=redStack Lab
-ImgNum=41
-Mythic (SSH)= #109#0%mythic%22%admin%%-1%-1%%%%%0%-1%0%%%-1%-1%0%0%%1080%%0%0%1%%0%%%%0%-1%-1%0%%%0#MobaFont%10%0%0%-1%15%236,236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%0%_Std_Colors_0_%80%24%0%1%-1%<none>%%0%0%-1%0%#0# #-1
-Sliver (SSH)= #109#0%sliver%22%admin%%-1%-1%%%%%0%-1%0%%%-1%-1%0%0%%1080%%0%0%1%%0%%%%0%-1%-1%0%%%0#MobaFont%10%0%0%-1%15%236,236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%0%_Std_Colors_0_%80%24%0%1%-1%<none>%%0%0%-1%0%#0# #-1
-Havoc (SSH)= #109#0%havoc%22%admin%%-1%-1%%%%%0%-1%0%%%-1%-1%0%0%%1080%%0%0%1%%0%%%%0%-1%-1%0%%%0#MobaFont%10%0%0%-1%15%236,236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%0%_Std_Colors_0_%80%24%0%1%-1%<none>%%0%0%-1%0%#0# #-1
-Redirector (SSH)= #109#0%redirector%22%admin%%-1%-1%%%%%0%-1%0%%%-1%-1%0%0%%1080%%0%0%1%%0%%%%0%-1%-1%0%%%0#MobaFont%10%0%0%-1%15%236,236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%0%_Std_Colors_0_%80%24%0%1%-1%<none>%%0%0%-1%0%#0# #-1
-Guacamole (SSH)= #109#0%guac%22%admin%%-1%-1%%%%%0%-1%0%%%-1%-1%0%0%%1080%%0%0%1%%0%%%%0%-1%-1%0%%%0#MobaFont%10%0%0%-1%15%236,236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%0%_Std_Colors_0_%80%24%0%1%-1%<none>%%0%0%-1%0%#0# #-1
-Kali (SSH)= #109#0%kali%22%admin%%-1%-1%%%%%0%-1%0%%%-1%-1%0%0%%1080%%0%0%1%%0%%%%0%-1%-1%0%%%0#MobaFont%10%0%0%-1%15%236,236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%0%_Std_Colors_0_%80%24%0%1%-1%<none>%%0%0%-1%0%#0# #-1
 
 [SSH]
 SFTPShowDotFiles=1
@@ -92,11 +81,17 @@ RoundedTabs=1
 GraphicCache=1
 
 [Bookmarks]
-SubRep=
-ImgNum=41
+SubRep=redStack Sessions
+ImgNum=42
+Mythic C2 (SSH)= #109#0%mythic%22%admin%%-1%-1%%%%%0%-1%0%%%-1%-1%0%0%%1080%%0%0%1%%0%%%%0%-1%-1%0%%%0#MobaFont%10%0%0%-1%15%236,236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%0%_Std_Colors_0_%80%24%0%1%-1%<none>%%0%0%-1%0%#0# #-1
+Sliver C2 (SSH)= #109#0%sliver%22%admin%%-1%-1%%%%%0%-1%0%%%-1%-1%0%0%%1080%%0%0%1%%0%%%%0%-1%-1%0%%%0#MobaFont%10%0%0%-1%15%236,236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%0%_Std_Colors_0_%80%24%0%1%-1%<none>%%0%0%-1%0%#0# #-1
+Havoc C2 (SSH)= #109#0%havoc%22%admin%%-1%-1%%%%%0%-1%0%%%-1%-1%0%0%%1080%%0%0%1%%0%%%%0%-1%-1%0%%%0#MobaFont%10%0%0%-1%15%236,236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%0%_Std_Colors_0_%80%24%0%1%-1%<none>%%0%0%-1%0%#0# #-1
+Apache Redirector (SSH)= #109#0%redirector%22%admin%%-1%-1%%%%%0%-1%0%%%-1%-1%0%0%%1080%%0%0%1%%0%%%%0%-1%-1%0%%%0#MobaFont%10%0%0%-1%15%236,236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%0%_Std_Colors_0_%80%24%0%1%-1%<none>%%0%0%-1%0%#0# #-1
+Guacamole Server (SSH)= #109#0%guac%22%admin%%-1%-1%%%%%0%-1%0%%%-1%-1%0%0%%1080%%0%0%1%%0%%%%0%-1%-1%0%%%0#MobaFont%10%0%0%-1%15%236,236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%0%_Std_Colors_0_%80%24%0%1%-1%<none>%%0%0%-1%0%#0# #-1
+Kali Linux (SSH)= #109#0%kali%22%admin%%-1%-1%%%%%0%-1%0%%%-1%-1%0%0%%1080%%0%0%1%%0%%%%0%-1%-1%0%%%0#MobaFont%10%0%0%-1%15%236,236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%0%_Std_Colors_0_%80%24%0%1%-1%<none>%%0%0%-1%0%#0# #-1
 '@
 
 $utf8NoBom = New-Object System.Text.UTF8Encoding $false
 [System.IO.File]::WriteAllText("$mobaDir\MobaXterm.ini", $mobaIni, $utf8NoBom)
 Write-Host "[+] MobaXterm sessions written to $mobaDir\MobaXterm.ini"
-Write-Host "[+] Open MobaXterm — redStack Lab sessions should appear in the sidebar."
+Write-Host "[+] Open MobaXterm — redStack Sessions should appear in the sidebar."
