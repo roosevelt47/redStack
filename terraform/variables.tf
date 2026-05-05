@@ -58,7 +58,7 @@ variable "redirector_instance_type" {
 variable "sliver_instance_type" {
   description = "EC2 instance type for Sliver C2 server"
   type        = string
-  default     = "t3.small"
+  default     = "t3.medium"
 }
 
 variable "havoc_instance_type" {
