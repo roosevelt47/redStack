@@ -27,9 +27,9 @@ The wiki is the de facto operator handbook. This README is a thin landing page s
 | # | What | Where |
 |---|------|-------|
 | 1 | First-time AWS setup (account, IAM, CLI, SSH key, Kali Marketplace subscription) | **[Prerequisites](https://github.com/BaddKharma/redStack/wiki/02.-Prerequisites)** |
-| 2 | Pick open or closed environment | **[Deployment Modes](https://github.com/BaddKharma/redStack/wiki/07.-Deployment-Mode-Architecture)** |
-| 3 | Configure tfvars and `terraform apply` | **[Deploy](https://github.com/BaddKharma/redStack/wiki/03.-Deploy)** |
-| 4 | Confirm Guacamole + Windows + internal DNS | **[Verify](https://github.com/BaddKharma/redStack/wiki/04.-Verify)** |
+| 2 | Pick open or closed environment | **[Deployment Modes](https://github.com/BaddKharma/redStack/wiki/04.-Deployment-Mode-Architecture)** |
+| 3 | Configure tfvars and `terraform apply` | **[Deploy](https://github.com/BaddKharma/redStack/wiki/04.-Deploy)** |
+| 4 | Confirm Guacamole + Windows + internal DNS | **[Verify](https://github.com/BaddKharma/redStack/wiki/05.-Verify)** |
 | 5 | Land first beacon: pick a C2 | **[Mythic](https://github.com/BaddKharma/redStack/wiki/10.-Mythic)** · **[Sliver](https://github.com/BaddKharma/redStack/wiki/11.-Sliver)** · **[Havoc](https://github.com/BaddKharma/redStack/wiki/12.-Havoc)** |
 
 **Total time:** ~45-90 minutes on first deploy. Subsequent deploys: ~30-45 minutes.
@@ -52,8 +52,8 @@ Seven EC2 instances across two peered VPCs. Two have public Elastic IPs (Guacamo
 | `windows` | Windows Server 2022 workstation | No |
 | `kali` | Kali Linux workstation (AD enum + attack toolset) | No |
 
-Full inventory and sizing details: **[Lab-Inventory](https://github.com/BaddKharma/redStack/wiki/06.-Lab-Inventory)**.
-Architecture diagram: **[Lab-Architecture](https://github.com/BaddKharma/redStack/wiki/07.-Deployment-Mode-Architecture)**.
+Full inventory and sizing details: **[Lab-Inventory](https://github.com/BaddKharma/redStack/wiki/07.-Lab-Inventory)**.
+Architecture diagram: **[Lab-Architecture](https://github.com/BaddKharma/redStack/wiki/04.-Deployment-Mode-Architecture)**.
 
 ---
 
@@ -74,9 +74,9 @@ Roughly **$0.25/hour** of compute while running. With `terraform destroy` betwee
 
 ## Wiki Page Map
 
-**Getting started:** [Home](https://github.com/BaddKharma/redStack/wiki) · [Quick-Start](https://github.com/BaddKharma/redStack/wiki/01.-Quick-Start) · [Prerequisites](https://github.com/BaddKharma/redStack/wiki/02.-Prerequisites) · [Deployment-Modes](https://github.com/BaddKharma/redStack/wiki/07.-Deployment-Mode-Architecture) · [Deploy](https://github.com/BaddKharma/redStack/wiki/03.-Deploy) · [Verify](https://github.com/BaddKharma/redStack/wiki/04.-Verify)
+**Getting started:** [Home](https://github.com/BaddKharma/redStack/wiki) · [Quick-Start](https://github.com/BaddKharma/redStack/wiki/01.-Quick-Start) · [Prerequisites](https://github.com/BaddKharma/redStack/wiki/02.-Prerequisites) · [Deployment-Modes](https://github.com/BaddKharma/redStack/wiki/04.-Deployment-Mode-Architecture) · [Deploy](https://github.com/BaddKharma/redStack/wiki/04.-Deploy) · [Verify](https://github.com/BaddKharma/redStack/wiki/05.-Verify)
 
-**Reference:** [Lab-Architecture](https://github.com/BaddKharma/redStack/wiki/07.-Deployment-Mode-Architecture) · [Lab-Inventory](https://github.com/BaddKharma/redStack/wiki/06.-Lab-Inventory) · [SSH-Access](https://github.com/BaddKharma/redStack/wiki/08.-SSH-Access) · [Cost-Management](https://github.com/BaddKharma/redStack/wiki/17.-Cost-Management)
+**Reference:** [Lab-Architecture](https://github.com/BaddKharma/redStack/wiki/04.-Deployment-Mode-Architecture) · [Lab-Inventory](https://github.com/BaddKharma/redStack/wiki/07.-Lab-Inventory) · [SSH-Access](https://github.com/BaddKharma/redStack/wiki/08.-SSH-Access) · [Cost-Management](https://github.com/BaddKharma/redStack/wiki/17.-Cost-Management)
 
 **C2 backends:** [Mythic](https://github.com/BaddKharma/redStack/wiki/10.-Mythic) · [Sliver](https://github.com/BaddKharma/redStack/wiki/11.-Sliver) · [Havoc](https://github.com/BaddKharma/redStack/wiki/12.-Havoc)
 
