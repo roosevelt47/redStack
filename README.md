@@ -30,7 +30,7 @@ The wiki is the de facto operator handbook. This README is a thin landing page s
 | 2 | Pick open or closed environment | **[Deployment Modes](https://github.com/BaddKharma/redStack/wiki/07.-Deployment-Modes)** |
 | 3 | Configure tfvars and `terraform apply` | **[Deploy](https://github.com/BaddKharma/redStack/wiki/03.-Deploy)** |
 | 4 | Confirm Guacamole + Windows + internal DNS | **[Verify](https://github.com/BaddKharma/redStack/wiki/04.-Verify)** |
-| 5 | Land first beacon: pick a C2 | **[Mythic](https://github.com/BaddKharma/redStack/wiki/10.-Mythic)** · **[Sliver](https://github.com/BaddKharma/redStack/wiki/11.-Sliver)** · **[Havoc](https://github.com/BaddKharma/redStack/wiki/12.-Havoc)** |
+| 5 | Land first beacon: pick a C2 | **[Mythic](https://github.com/BaddKharma/redStack/wiki/11.-Mythic)** · **[Sliver](https://github.com/BaddKharma/redStack/wiki/12.-Sliver)** · **[Havoc](https://github.com/BaddKharma/redStack/wiki/13.-Havoc)** |
 
 **Total time:** ~45-90 minutes on first deploy. Subsequent deploys: ~30-45 minutes.
 
@@ -53,13 +53,13 @@ Seven EC2 instances across two peered VPCs. Two have public Elastic IPs (Guacamo
 | `kali` | Kali Linux workstation (AD enum + attack toolset) | No |
 
 Full inventory and sizing details: **[Lab-Inventory](https://github.com/BaddKharma/redStack/wiki/06.-Lab-Inventory)**.
-Architecture diagram: **[Lab-Architecture](https://github.com/BaddKharma/redStack/wiki/19.-Lab-Architecture)**.
+Architecture diagram: **[Lab-Architecture](https://github.com/BaddKharma/redStack/wiki/08.-Lab-Architecture)**.
 
 ---
 
 ## Cost
 
-Roughly **$0.25/hour** of compute while running. With `terraform destroy` between sessions (recommended), expected monthly cost is **~$5-11/month** for typical 5-10 hr/wk study cadence. Full breakdown including stop-vs-destroy tradeoffs: **[Cost-Management](https://github.com/BaddKharma/redStack/wiki/17.-Cost-Management)**.
+Roughly **$0.25/hour** of compute while running. With `terraform destroy` between sessions (recommended), expected monthly cost is **~$5-11/month** for typical 5-10 hr/wk study cadence. Full breakdown including stop-vs-destroy tradeoffs: **[Cost-Management](https://github.com/BaddKharma/redStack/wiki/18.-Cost-Management)**.
 
 > [!CAUTION]
 > Forgetting a deployed lab is the #1 cause of unexpected AWS bills. Set a CloudWatch billing alarm before your first `terraform apply`.
@@ -68,7 +68,7 @@ Roughly **$0.25/hour** of compute while running. With `terraform destroy` betwee
 
 ## When Something Breaks
 
-**[Troubleshooting](https://github.com/BaddKharma/redStack/wiki/18.-Troubleshooting)** covers the failure modes that actually come up: Mythic SSL cert, Sliver missing, Havoc build failed, agent not calling back, Marketplace `OptInRequired`, VPC limits, `redirect.rules` download issues, Kali user rename, `ssh -R` binding behavior, and more.
+**[Troubleshooting](https://github.com/BaddKharma/redStack/wiki/19.-Troubleshooting)** covers the failure modes that actually come up: Mythic SSL cert, Sliver missing, Havoc build failed, agent not calling back, Marketplace `OptInRequired`, VPC limits, `redirect.rules` download issues, Kali user rename, `ssh -R` binding behavior, and more.
 
 ---
 
@@ -76,15 +76,15 @@ Roughly **$0.25/hour** of compute while running. With `terraform destroy` betwee
 
 **Getting started:** [Home](https://github.com/BaddKharma/redStack/wiki) · [Quick-Start](https://github.com/BaddKharma/redStack/wiki/01.-Quick-Start) · [Prerequisites](https://github.com/BaddKharma/redStack/wiki/02.-Prerequisites) · [Deployment-Modes](https://github.com/BaddKharma/redStack/wiki/07.-Deployment-Modes) · [Deploy](https://github.com/BaddKharma/redStack/wiki/03.-Deploy) · [Verify](https://github.com/BaddKharma/redStack/wiki/04.-Verify)
 
-**Reference:** [Lab-Architecture](https://github.com/BaddKharma/redStack/wiki/19.-Lab-Architecture) · [Lab-Inventory](https://github.com/BaddKharma/redStack/wiki/06.-Lab-Inventory) · [SSH-Access](https://github.com/BaddKharma/redStack/wiki/08.-SSH-Access) · [Cost-Management](https://github.com/BaddKharma/redStack/wiki/17.-Cost-Management)
+**Reference:** [Lab-Architecture](https://github.com/BaddKharma/redStack/wiki/08.-Lab-Architecture) · [Lab-Inventory](https://github.com/BaddKharma/redStack/wiki/06.-Lab-Inventory) · [SSH-Access](https://github.com/BaddKharma/redStack/wiki/09.-SSH-Access) · [Cost-Management](https://github.com/BaddKharma/redStack/wiki/18.-Cost-Management)
 
-**C2 backends:** [Mythic](https://github.com/BaddKharma/redStack/wiki/10.-Mythic) · [Sliver](https://github.com/BaddKharma/redStack/wiki/11.-Sliver) · [Havoc](https://github.com/BaddKharma/redStack/wiki/12.-Havoc)
+**C2 backends:** [Mythic](https://github.com/BaddKharma/redStack/wiki/11.-Mythic) · [Sliver](https://github.com/BaddKharma/redStack/wiki/12.-Sliver) · [Havoc](https://github.com/BaddKharma/redStack/wiki/13.-Havoc)
 
-**Workstations:** [Windows](https://github.com/BaddKharma/redStack/wiki/13.-Windows) · [Kali](https://github.com/BaddKharma/redStack/wiki/14.-Kali)
+**Workstations:** [Windows](https://github.com/BaddKharma/redStack/wiki/14.-Windows) · [Kali](https://github.com/BaddKharma/redStack/wiki/15.-Kali)
 
-**Infrastructure:** [Guacamole](https://github.com/BaddKharma/redStack/wiki/15.-Guacamole) · [Redirector](https://github.com/BaddKharma/redStack/wiki/09.-Redirector) · [External-Targets](https://github.com/BaddKharma/redStack/wiki/16.-External-Targets)
+**Infrastructure:** [Guacamole](https://github.com/BaddKharma/redStack/wiki/16.-Guacamole) · [Redirector](https://github.com/BaddKharma/redStack/wiki/10.-Redirector) · [External-Targets](https://github.com/BaddKharma/redStack/wiki/17.-External-Targets)
 
-**Help:** [Troubleshooting](https://github.com/BaddKharma/redStack/wiki/18.-Troubleshooting)
+**Help:** [Troubleshooting](https://github.com/BaddKharma/redStack/wiki/19.-Troubleshooting)
 
 ---
 
