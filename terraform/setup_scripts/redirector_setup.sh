@@ -473,6 +473,12 @@ fi
 if [ "$ENABLE_VPN" = "true" ]; then
     cat >> /etc/update-motd.d/99-redstack << 'MOTDEOF'
 printf '[vpnTUN] HTB / VL / PG\n'
+TUN0_IP=$(ip -4 addr show tun0 2>/dev/null | grep -oP '(?<=inet\s)\d+(\.\d+)+')
+if [ -n "$TUN0_IP" ]; then
+    printf "  tun0 IP:     %s  (use for C2 callbacks on isolated targets)\n" "$TUN0_IP"
+else
+    printf '  tun0 IP:     (not connected -- sudo systemctl start vpn-tunnel)\n'
+fi
 printf '  1. Upload:   scp lab.ovpn admin@<redirector-ip>:~/vpn/\n'
 printf '  2. Connect:  sudo systemctl start vpn-tunnel\n'
 printf '  3. Status:   sudo systemctl status vpn-tunnel\n'
