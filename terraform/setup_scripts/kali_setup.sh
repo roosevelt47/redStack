@@ -318,9 +318,10 @@ if [ -f /etc/update-motd.d/00-kali ]; then
     chmod -x /etc/update-motd.d/00-kali
 fi
 
-# Suppress the Kali developer "minimal install" message
-touch /home/admin/.hushlogin
-chown admin:admin /home/admin/.hushlogin
+# Disable the Kali developer "minimal install" motd script if present
+if [ -f /etc/update-motd.d/99-kali-motd ]; then
+    chmod -x /etc/update-motd.d/99-kali-motd
+fi
 
 # ----------------------------------------------------------------------------
 # 9. GUI install if mode == gui
