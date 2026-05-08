@@ -127,7 +127,7 @@ The SSH private key (`rs-rsa-key.pem`) lives at the repo root; `terraform.tfvars
 ## License
 
 MIT License with Commons Clause. Free to use, deploy, modify, and share for any purpose.
-Commercial use — selling redStack or building a paid product or service on it — requires
+Commercial use (selling redStack or building a paid product or service on it) requires
 written permission.
 
 For commercial licensing: [mike@devzerosecurity.com](mailto:mike@devzerosecurity.com). See [LICENSE](LICENSE) for full terms.
