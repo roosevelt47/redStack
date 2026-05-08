@@ -47,6 +47,10 @@ fi
 # ----------------------------------------------------------------------------
 hostnamectl set-hostname kali
 
+# Disable cloud-init hosts management so lab hostname entries survive reboots
+sed -i 's/manage_etc_hosts: true/manage_etc_hosts: false/' /etc/cloud/cloud.cfg
+sed -i 's/manage_etc_hosts: true/manage_etc_hosts: false/' /etc/cloud/cloud.cfg.d/01_debian_cloud.cfg 2>/dev/null || true
+
 cat >> /etc/hosts << HOSTS
 
 # redStack lab hosts
@@ -111,14 +115,15 @@ cat > /usr/local/sbin/install-kali-tools << 'TOOLSCRIPT'
 #!/bin/bash
 # install-kali-tools - One-shot installer for the redStack curated tool lineup.
 #
-# Twenty-one tools, weighted toward Active Directory enumeration and attack.
+# Twenty-two tools, weighted toward Active Directory enumeration and attack.
 # Idempotent: safe to re-run. Does not use `set -e` so a single failure does
 # not abort the rest.
 #
 # Install methods:
-#   apt  (17): nmap, enum4linux-ng, smbmap, mitm6, ldap-utils, seclists,
+#   apt  (18): nmap, enum4linux-ng, smbmap, mitm6, ldap-utils, seclists,
 #              gobuster, coercer, impacket-scripts, netexec, evil-winrm,
-#              bloodhound.py, certipy-ad, responder, hashcat, john, pipx
+#              bloodhound.py, certipy-ad, responder, hashcat, john, pipx,
+#              proxychains4
 #   pipx  (1): adidnsdump
 #   pipx+git(1): pre2k (not on PyPI — installed from github.com/garrettfoster13/pre2k)
 #   binary(2): kerbrute, windapsearch  (GitHub release binaries)
@@ -146,10 +151,11 @@ PACKAGES=(
     hashcat
     john
     pipx
+    proxychains4
 )
 
 echo "[*] redStack curated Kali tool installer"
-echo "[*] Installing 21 tools: $${#PACKAGES[@]} via apt, 2 via pipx, 2 via GitHub binary."
+echo "[*] Installing 22 tools: $${#PACKAGES[@]} via apt, 2 via pipx, 2 via GitHub binary."
 echo ""
 
 apt-get update
@@ -303,7 +309,7 @@ cat << BANNER
 |  redStack KALI WORKSTATION                                          |
 +=====================================================================+
    Current Mode:   $(echo "${kali_deployment_mode}" | tr '[:lower:]' '[:upper:]')
-   Tools:          21-tool AD/enum suite (installed at setup)
+   Tools:          22-tool AD/enum suite (installed at setup)
    Refresh/fix:    sudo install-kali-tools
    Convert to GUI: sudo kali-go-gui            (only needed in HEADLESS mode)
 +=====================================================================+
