@@ -178,6 +178,7 @@ Type=simple
 WorkingDirectory=/opt/Havoc
 ExecStart=/opt/Havoc/teamserver/teamserver server --profile /opt/Havoc/profiles/default.yaotl
 User=admin
+AmbientCapabilities=CAP_NET_BIND_SERVICE
 Restart=on-failure
 RestartSec=5
 StandardOutput=journal

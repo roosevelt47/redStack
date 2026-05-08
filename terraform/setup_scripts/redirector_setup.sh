@@ -61,11 +61,6 @@ echo "[*] Active VirtualHosts:"
 apache2ctl -S 2>/dev/null
 echo ""
 UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-echo "[*] Testing direct backend connectivity:"
-curl -I -m 5 -A "$UA" http://MYTHIC_IP_PLACEHOLDER/ 2>/dev/null && echo "  Mythic: OK" || echo "  Mythic: FAILED"
-curl -I -m 5 -A "$UA" http://SLIVER_IP_PLACEHOLDER/ 2>/dev/null && echo "  Sliver: OK" || echo "  Sliver: FAILED"
-curl -I -m 5 -A "$UA" http://HAVOC_IP_PLACEHOLDER/ 2>/dev/null && echo "  Havoc:  OK" || echo "  Havoc:  FAILED"
-echo ""
 echo "[*] Testing decoy page (no header - should get CloudEdge CDN page):"
 curl -s -A "$UA" http://localhost/ | head -5
 echo ""
@@ -88,6 +83,14 @@ echo "[*] URI routing (requires correct header):"
 echo "  MYTHIC_PREFIX_PLACEHOLDER/ -> Mythic  (MYTHIC_IP_PLACEHOLDER)"
 echo "  SLIVER_PREFIX_PLACEHOLDER/ -> Sliver  (SLIVER_IP_PLACEHOLDER)"
 echo "  HAVOC_PREFIX_PLACEHOLDER/ -> Havoc   (HAVOC_IP_PLACEHOLDER)"
+echo ""
+echo ""
+echo "[*] Testing direct backend connectivity:"
+curl -I -m 5 -A "$UA" http://MYTHIC_IP_PLACEHOLDER/ 2>/dev/null && echo "  Mythic: OK" || echo "  Mythic: FAILED"
+echo ""
+curl -I -m 5 -A "$UA" http://SLIVER_IP_PLACEHOLDER/ 2>/dev/null && echo "  Sliver: OK" || echo "  Sliver: FAILED"
+echo ""
+curl -I -m 5 -A "$UA" http://HAVOC_IP_PLACEHOLDER/ 2>/dev/null && echo "  Havoc:  OK" || echo "  Havoc:  FAILED"
 TESTSCRIPT
 sed -i "s|MYTHIC_IP_PLACEHOLDER|$MYTHIC_PRIVATE_IP|g" /root/test_redirector.sh
 sed -i "s|SLIVER_IP_PLACEHOLDER|$SLIVER_PRIVATE_IP|g" /root/test_redirector.sh
