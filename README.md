@@ -6,7 +6,7 @@
 
 ![redStack Banner](assets/redStack-banner.png)
 
-> A self-contained Boot-to-Breach lab on AWS. Deploy a full red-team training environment in ~45 minutes: three C2 frameworks (Mythic, Sliver, Havoc), an Apache redirector, a Kali workstation, a Windows workstation, and a Guacamole portal. Two peered VPCs, header + URI gating, scanner blocking, optional OpenVPN routing for HTB / VulnLab / Proving Grounds.
+> A self-contained Boot-to-Breach lab on AWS. Deploy a full red-team training environment in ~45 minutes: three C2 frameworks (Mythic, Sliver, Havoc), an Apache redirector, a Kali workstation, a Windows workstation, and a Guacamole portal. Two peered VPCs, header + URI gating, scanner blocking, optional OpenVPN routing for cyber ranges.
 
 **📖 [Full documentation lives in the redStack Wiki →](https://github.com/BaddKharma/redStack/wiki)**
 
@@ -15,7 +15,7 @@ The wiki is the de facto operator handbook. This README is a thin landing page s
 ---
 
 > [!IMPORTANT]
-> redStack is not a tutorial on how to use C2 frameworks. It's an environment that removes the infrastructure hurdle so you can focus on learning. **This lab is strictly for authorized training and lab environments only** (HTB, VL, PG, self-hosted cyber ranges, personal lab VMs, etc.). Not intended for use in real-world engagements or against targets you do not own and have explicit written permission to test.
+> redStack is not a tutorial on how to use C2 frameworks. It's an environment that removes the infrastructure hurdle so you can focus on learning. **This lab is strictly for authorized training and lab environments only** (cyber ranges, self-hosted environments, personal lab VMs, etc.). Not intended for use in real-world engagements or against targets you do not own and have explicit written permission to test.
 
 > [!CAUTION]
 > **AWS TOS: use at your own risk.** Hosting C2 infrastructure on AWS may raise concerns under the [AWS Acceptable Use Policy](https://aws.amazon.com/aup/). Before deploying, review the AUP and submit the [AWS Penetration Testing / Simulated Events request form](https://aws.amazon.com/security/penetration-testing/). As long as you're using redStack exclusively for personal lab work and authorized training platforms, you're generally in the clear. To be safe, run redStack from a dedicated, single-purpose throwaway AWS account.
