@@ -320,6 +320,11 @@ done
 # Also clear the static /etc/motd file (sometimes contains Kali developer message)
 truncate -s 0 /etc/motd 2>/dev/null || true
 
+# Disable /usr/bin/kali-motd called from /etc/profile.d/kali.sh (Kali developer message)
+if [ -f /etc/profile.d/kali.sh ]; then
+    sed -i 's|    kali-motd|    # kali-motd  # disabled by redStack|' /etc/profile.d/kali.sh
+fi
+
 # ----------------------------------------------------------------------------
 # 9. GUI install if mode == gui
 # ----------------------------------------------------------------------------
