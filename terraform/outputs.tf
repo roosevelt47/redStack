@@ -192,6 +192,11 @@ output "deployment_info" {
   value       = local.deployment_info_content
 }
 
+output "dedication" {
+  value     = "For Fev, My Forever."
+  sensitive = true
+}
+
 output "network_architecture" {
   description = "Network architecture diagram with actual IPs"
   value       = local.network_architecture_content
