@@ -19,14 +19,13 @@ REDIRECTOR_PRIVATE_IP="${redirector_private_ip}"
 SLIVER_PRIVATE_IP="${sliver_private_ip}"
 HAVOC_PRIVATE_IP="${havoc_private_ip}"
 GUACAMOLE_PRIVATE_IP="${guacamole_private_ip}"
+KALI_PRIVATE_IP="${kali_private_ip}"
+KALI_DEPLOYMENT_MODE="${kali_deployment_mode}"
 
 # Update system
-echo "[*] Updating system packages..."
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
 
-# Install dependencies
-echo "[*] Installing Docker, Nginx, and utilities..."
 apt-get install -y \
     docker.io \
     docker-compose \
@@ -45,19 +44,15 @@ systemctl start docker
 usermod -aG docker admin
 
 # Create Guacamole directory structure
-echo "[*] Setting up Guacamole directory structure..."
 mkdir -p /opt/guacamole/{postgres,config}
 cd /opt/guacamole
 
 # Initialize PostgreSQL schema
-echo "[*] Generating PostgreSQL initialization script..."
 docker run --rm guacamole/guacamole /opt/guacamole/bin/initdb.sh --postgresql > initdb.sql
 
 # Generate random DB password
 DB_PASSWORD=$(openssl rand -base64 16)
 
-# Create docker-compose.yml
-echo "[*] Creating docker-compose configuration..."
 cat > docker-compose.yml <<EOF
 version: '3'
 
@@ -112,12 +107,10 @@ EOF
 
 # Create guac drive share directory BEFORE docker-compose so Docker doesn't create it as root
 # guacd runs as a non-root user in the container and needs write access to /drive
-echo "[*] Creating guac drive share directory..."
 mkdir -p /drive
 chmod 777 /drive
 
 # Start Guacamole containers
-echo "[*] Starting Guacamole containers..."
 docker-compose up -d
 
 # Wait for Guacamole to be ready
@@ -125,7 +118,6 @@ echo "[*] Waiting for Guacamole containers to start..."
 sleep 10
 
 # Configure Nginx reverse proxy with self-signed SSL
-echo "[*] Configuring Nginx reverse proxy..."
 cat > /etc/nginx/sites-available/guacamole <<EOF
 server {
     listen 80;
@@ -160,7 +152,6 @@ server {
 EOF
 
 # Generate self-signed certificate
-echo "[*] Generating self-signed SSL certificate..."
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
     -keyout /etc/ssl/private/guacamole-selfsigned.key \
     -out /etc/ssl/certs/guacamole-selfsigned.crt \
@@ -192,7 +183,6 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
 done
 
 # Change default Guacamole admin password using API
-echo "[*] Changing default Guacamole admin password..."
 IMDS_TOKEN_V2=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
 PUBLIC_IP=$(curl -s -H "X-aws-ec2-metadata-token: $IMDS_TOKEN_V2" http://169.254.169.254/latest/meta-data/public-ipv4)
 
@@ -219,14 +209,12 @@ if [ -n "$TOKEN" ]; then
     fi
 
     if [ -n "$TOKEN" ]; then
-    # Create RDP connection to Windows client (use jq to safely escape password in JSON)
-    echo "[*] Creating RDP connection to Windows client..."
     RDP_JSON=$(jq -n \
         --arg host "$WINDOWS_PRIVATE_IP" \
         --arg user "$WINDOWS_USERNAME" \
         --arg pass "$WINDOWS_PASSWORD" \
         '{
-            name: "Windows Operator Workstation",
+            name: "Windows (RDP)",
             protocol: "rdp",
             parameters: {
                 hostname: $host,
@@ -251,12 +239,10 @@ if [ -n "$TOKEN" ]; then
         -H "Content-Type: application/json" \
         -d "$RDP_JSON"
 
-    # Create SSH connection to Mythic Team Server
-    echo "[*] Creating SSH connection to Mythic Team Server..."
     curl -s -X POST "http://localhost:8080/guacamole/api/session/data/postgresql/connections?token=$TOKEN" \
         -H "Content-Type: application/json" \
         -d "{
-            \"name\": \"Mythic Team Server (SSH)\",
+            \"name\": \"Mythic (SSH)\",
             \"protocol\": \"ssh\",
             \"parameters\": {
                 \"hostname\": \"$MYTHIC_PRIVATE_IP\",
@@ -275,11 +261,10 @@ if [ -n "$TOKEN" ]; then
     # Create SSH connection to Guacamole Server (use private IP, not localhost, because guacd runs in Docker)
     IMDS_TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
     GUAC_PRIVATE_IP=$(curl -s -H "X-aws-ec2-metadata-token: $IMDS_TOKEN" http://169.254.169.254/latest/meta-data/local-ipv4)
-    echo "[*] Creating SSH connection to Guacamole Server ($GUAC_PRIVATE_IP)..."
     curl -s -X POST "http://localhost:8080/guacamole/api/session/data/postgresql/connections?token=$TOKEN" \
         -H "Content-Type: application/json" \
         -d "{
-            \"name\": \"Guacamole Server (SSH)\",
+            \"name\": \"Guacamole (SSH)\",
             \"protocol\": \"ssh\",
             \"parameters\": {
                 \"hostname\": \"$GUAC_PRIVATE_IP\",
@@ -295,12 +280,10 @@ if [ -n "$TOKEN" ]; then
             }
         }"
 
-    # Create SSH connection to Redirector Server
-    echo "[*] Creating SSH connection to Redirector Server..."
     curl -s -X POST "http://localhost:8080/guacamole/api/session/data/postgresql/connections?token=$TOKEN" \
         -H "Content-Type: application/json" \
         -d "{
-            \"name\": \"Apache Redirector (SSH)\",
+            \"name\": \"Redirector (SSH)\",
             \"protocol\": \"ssh\",
             \"parameters\": {
                 \"hostname\": \"$REDIRECTOR_PRIVATE_IP\",
@@ -316,12 +299,10 @@ if [ -n "$TOKEN" ]; then
             }
         }"
 
-    # Create SSH connection to Sliver C2 Server
-    echo "[*] Creating SSH connection to Sliver C2 Server..."
     curl -s -X POST "http://localhost:8080/guacamole/api/session/data/postgresql/connections?token=$TOKEN" \
         -H "Content-Type: application/json" \
         -d "{
-            \"name\": \"Sliver C2 Server (SSH)\",
+            \"name\": \"Sliver (SSH)\",
             \"protocol\": \"ssh\",
             \"parameters\": {
                 \"hostname\": \"$SLIVER_PRIVATE_IP\",
@@ -337,12 +318,10 @@ if [ -n "$TOKEN" ]; then
             }
         }"
 
-    # Create SSH connection to Havoc C2 Server
-    echo "[*] Creating SSH connection to Havoc C2 Server..."
     curl -s -X POST "http://localhost:8080/guacamole/api/session/data/postgresql/connections?token=$TOKEN" \
         -H "Content-Type: application/json" \
         -d "{
-            \"name\": \"Havoc C2 Server (SSH)\",
+            \"name\": \"Havoc (SSH)\",
             \"protocol\": \"ssh\",
             \"parameters\": {
                 \"hostname\": \"$HAVOC_PRIVATE_IP\",
@@ -358,12 +337,10 @@ if [ -n "$TOKEN" ]; then
             }
         }"
 
-    # Create VNC connection to Havoc C2 Desktop (GUI client)
-    echo "[*] Creating VNC connection to Havoc C2 Desktop..."
     curl -s -X POST "http://localhost:8080/guacamole/api/session/data/postgresql/connections?token=$TOKEN" \
         -H "Content-Type: application/json" \
         -d "{
-            \"name\": \"Havoc C2 Desktop (VNC)\",
+            \"name\": \"Havoc Desktop (VNC)\",
             \"protocol\": \"vnc\",
             \"parameters\": {
                 \"hostname\": \"$HAVOC_PRIVATE_IP\",
@@ -376,6 +353,51 @@ if [ -n "$TOKEN" ]; then
                 \"max-connections-per-user\": \"1\"
             }
         }"
+
+    curl -s -X POST "http://localhost:8080/guacamole/api/session/data/postgresql/connections?token=$TOKEN" \
+        -H "Content-Type: application/json" \
+        -d "{
+            \"name\": \"Kali (SSH)\",
+            \"protocol\": \"ssh\",
+            \"parameters\": {
+                \"hostname\": \"$KALI_PRIVATE_IP\",
+                \"port\": \"22\",
+                \"username\": \"admin\",
+                \"password\": \"$SSH_PASSWORD\",
+                \"color-scheme\": \"green-black\",
+                \"font-size\": \"12\"
+            },
+            \"attributes\": {
+                \"max-connections\": \"2\",
+                \"max-connections-per-user\": \"1\"
+            }
+        }"
+
+    # Create RDP connection to Kali Desktop only when GUI mode is selected.
+    # In headless mode, the operator can register this connection later via
+    # the Kali helper script /usr/local/sbin/kali-go-gui.
+    if [ "$KALI_DEPLOYMENT_MODE" = "gui" ]; then
+        curl -s -X POST "http://localhost:8080/guacamole/api/session/data/postgresql/connections?token=$TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{
+                \"name\": \"Kali (XRDP)\",
+                \"protocol\": \"rdp\",
+                \"parameters\": {
+                    \"hostname\": \"$KALI_PRIVATE_IP\",
+                    \"port\": \"3389\",
+                    \"username\": \"admin\",
+                    \"password\": \"$SSH_PASSWORD\",
+                    \"security\": \"any\",
+                    \"ignore-cert\": \"true\",
+                    \"color-depth\": \"24\",
+                    \"resize-method\": \"display-update\"
+                },
+                \"attributes\": {
+                    \"max-connections\": \"2\",
+                    \"max-connections-per-user\": \"1\"
+                }
+            }"
+    fi
     else
         echo "[!] Could not obtain valid token after password change. Skipping connection creation."
     fi
@@ -383,11 +405,59 @@ else
     echo "[!] Warning: Could not automatically configure Guacamole. Manual setup required."
 fi
 
+# Create the register-kali-rdp.sh helper script for post-deploy headless->GUI conversion.
+# kali-go-gui prints the instruction to run this; it registers the Kali XRDP connection
+# in Guacamole without requiring a terraform re-apply.
+mkdir -p /opt/redstack
+cat > /opt/redstack/register-kali-rdp.sh << RDPSCRIPT
+#!/bin/bash
+set -e
+KALI_IP="$KALI_PRIVATE_IP"
+LAB_PASS="$SSH_PASSWORD"
+
+echo "[*] Obtaining Guacamole API token..."
+RESPONSE=\$(curl -s -X POST "http://localhost:8080/guacamole/api/tokens" \
+    -H "Content-Type: application/x-www-form-urlencoded" \
+    -d "username=guacadmin&password=\$LAB_PASS")
+TOKEN=\$(printf '%s' "\$RESPONSE" | jq -r '.authToken // empty' 2>/dev/null)
+
+if [ -z "\$TOKEN" ]; then
+    echo "[!] Failed to get API token. Check that Guacamole is running and the lab password is correct."
+    exit 1
+fi
+
+echo "[*] Registering Kali XRDP connection..."
+curl -s -X POST "http://localhost:8080/guacamole/api/session/data/postgresql/connections?token=\$TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "{
+        \"name\": \"Kali (XRDP)\",
+        \"protocol\": \"rdp\",
+        \"parameters\": {
+            \"hostname\": \"\$KALI_IP\",
+            \"port\": \"3389\",
+            \"username\": \"admin\",
+            \"password\": \"\$LAB_PASS\",
+            \"security\": \"any\",
+            \"ignore-cert\": \"true\",
+            \"color-depth\": \"24\",
+            \"resize-method\": \"display-update\"
+        },
+        \"attributes\": {
+            \"max-connections\": \"2\",
+            \"max-connections-per-user\": \"1\"
+        }
+    }"
+
+echo ""
+echo "[+] Done. Refresh the Guacamole home page — 'Kali (XRDP)' will appear in the connection list."
+RDPSCRIPT
+chmod 755 /opt/redstack/register-kali-rdp.sh
+
 echo "===== Guacamole Server Setup Completed $(date) ====="
 echo "===== Access Guacamole at https://$PUBLIC_IP/guacamole ====="
 echo "===== Default credentials: guacadmin / $GUAC_ADMIN_PASSWORD ====="
 
-%{ if enable_external_vpn }
+%{ if enable_vpn_tunnel }
 # ============================================================================
 # WireGuard Tunnel Setup
 # Generates keypairs on-box and configures both ends of the tunnel via SSH.
@@ -420,7 +490,7 @@ PostDown = iptables -t nat -D POSTROUTING -o wg0 -j MASQUERADE; iptables -D FORW
 # Redirector (WireGuard server)
 PublicKey = $WG_SERVER_PUB
 Endpoint = ${redirector_private_ip}:51820
-AllowedIPs = ${join(",", external_vpn_cidrs)}
+AllowedIPs = ${join(",", vpn_tunnel_cidrs)}
 PersistentKeepalive = 25
 WGEOF
 

@@ -74,6 +74,28 @@ data "aws_ami" "debian12" {
   }
 }
 
+# Get latest official Kali Linux AMI (rolling release, published by Kali project)
+# Marketplace EULA must be accepted once per AWS account before first launch.
+data "aws_ami" "kali" {
+  most_recent = true
+  owners      = ["679593333241"] # Kali Linux project
+
+  filter {
+    name   = "name"
+    values = ["kali-last-snapshot-amd64-*"]
+  }
+
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
 # Get latest Windows Server 2022 AMI
 data "aws_ami" "windows2022" {
   most_recent = true
@@ -182,7 +204,7 @@ resource "aws_network_interface" "mythic" {
 resource "aws_network_interface" "guacamole" {
   subnet_id         = local.subnet_id
   security_groups   = [aws_security_group.guacamole.id]
-  source_dest_check = var.enable_external_vpn ? false : true
+  source_dest_check = var.enable_vpn_tunnel ? false : true
   tags              = { Name = "${var.project_name}-guacamole-eni" }
 }
 
@@ -225,6 +247,7 @@ resource "aws_instance" "mythic" {
     havoc_private_ip      = aws_network_interface.havoc.private_ip
     redirector_private_ip = aws_network_interface.redirector.private_ip
     windows_private_ip    = aws_network_interface.windows.private_ip
+    kali_private_ip       = aws_network_interface.kali.private_ip
     mythic_admin_password = random_password.lab.result
   })
 
@@ -233,9 +256,17 @@ resource "aws_instance" "mythic" {
     http_tokens   = "required" # IMDSv2 only
   }
 
+  # Stay insensitive to user_data drift on running boxes. v0.3 hygiene:
+  # template additions (e.g., new lab hosts) should not force replacement
+  # of an in-flight deployment. Fresh applies still pick up the new template.
+  lifecycle {
+    ignore_changes = [user_data]
+  }
+
   tags = {
-    Name = "${var.project_name}-mythic-server"
-    Role = "c2-backend"
+    Name     = "${var.project_name}-mythic"
+    Role     = "c2"
+    Hostname = "mythic"
   }
 }
 
@@ -280,6 +311,7 @@ resource "aws_instance" "guacamole" {
     havoc_private_ip      = aws_network_interface.havoc.private_ip
     redirector_private_ip = aws_network_interface.redirector.private_ip
     windows_private_ip    = aws_network_interface.windows.private_ip
+    kali_private_ip       = aws_network_interface.kali.private_ip
     setup_script_b64 = base64gzip(replace(templatefile("${path.module}/setup_scripts/guacamole_setup.sh", {
       guac_admin_password   = random_password.lab.result
       windows_private_ip    = aws_network_interface.windows.private_ip
@@ -291,8 +323,10 @@ resource "aws_instance" "guacamole" {
       sliver_private_ip     = aws_network_interface.sliver.private_ip
       havoc_private_ip      = aws_network_interface.havoc.private_ip
       guacamole_private_ip  = aws_network_interface.guacamole.private_ip
-      enable_external_vpn   = var.enable_external_vpn
-      external_vpn_cidrs    = var.external_vpn_cidrs
+      kali_private_ip       = aws_network_interface.kali.private_ip
+      kali_deployment_mode  = var.kali_deployment_mode
+      enable_vpn_tunnel   = var.enable_vpn_tunnel
+      vpn_tunnel_cidrs    = var.vpn_tunnel_cidrs
     }), "\r", ""))
   }), "\r", "")
 
@@ -303,9 +337,14 @@ resource "aws_instance" "guacamole" {
     http_tokens   = "required"
   }
 
+  lifecycle {
+    ignore_changes = [user_data]
+  }
+
   tags = {
-    Name = "${var.project_name}-guacamole-server"
-    Role = "operator-access"
+    Name     = "${var.project_name}-guacamole"
+    Role     = "portal"
+    Hostname = "guac"
   }
 }
 
@@ -342,6 +381,7 @@ resource "aws_instance" "windows" {
       "${aws_network_interface.sliver.private_ip}    sliver",
       "${aws_network_interface.havoc.private_ip}    havoc",
       "${aws_network_interface.redirector.private_ip}    redirector",
+      "${aws_network_interface.kali.private_ip}    kali",
     ])
   )
 
@@ -350,8 +390,13 @@ resource "aws_instance" "windows" {
     http_tokens   = "required"
   }
 
+  lifecycle {
+    ignore_changes = [user_data]
+  }
+
   tags = {
-    Name = "${var.project_name}-windows-client"
-    Role = "operator-workstation"
+    Name     = "${var.project_name}-windows"
+    Role     = "workstation"
+    Hostname = "windows"
   }
 }

@@ -58,13 +58,35 @@ variable "redirector_instance_type" {
 variable "sliver_instance_type" {
   description = "EC2 instance type for Sliver C2 server"
   type        = string
-  default     = "t3.small"
+  default     = "t3.medium"
 }
 
 variable "havoc_instance_type" {
   description = "EC2 instance type for Havoc C2 server"
   type        = string
   default     = "t3.medium"
+}
+
+variable "kali_deployment_mode" {
+  description = "Kali operator deployment mode: 'headless' (SSH only via Guacamole) or 'gui' (XFCE + XRDP via Guacamole). Headless is faster and cheaper; GUI can be enabled post-deploy via /usr/local/sbin/kali-go-gui."
+  type        = string
+  default     = "headless"
+  validation {
+    condition     = contains(["headless", "gui"], var.kali_deployment_mode)
+    error_message = "kali_deployment_mode must be 'headless' or 'gui'."
+  }
+}
+
+variable "kali_instance_type" {
+  description = "EC2 instance type for Kali operator. Leave empty to auto-pick by mode (t3.medium for headless, t3.large for gui)."
+  type        = string
+  default     = ""
+}
+
+variable "kali_volume_size" {
+  description = "Root volume size in GB for the Kali operator. Leave 0 to auto-pick by mode (30 for headless, 50 for gui)."
+  type        = number
+  default     = 0
 }
 
 variable "use_default_vpc" {
@@ -103,14 +125,14 @@ variable "enable_redirector_htaccess_filtering" {
   default     = true
 }
 
-variable "enable_external_vpn" {
-  description = "External VPN routing: OpenVPN client on redirector + WireGuard tunnel from C2 VPC, so internal lab machines can reach HTB/VulnLab/Proving Grounds Pro Lab targets. Leave false for normal public-internet operation."
+variable "enable_vpn_tunnel" {
+  description = "vpnTUN routing: OpenVPN client on redirector + WireGuard tunnel from C2 VPC, so internal lab machines can reach cyber range targets. Leave false for normal public-internet operation."
   type        = bool
   default     = false
 }
 
-variable "external_vpn_cidrs" {
-  description = "Target subnets reachable through the external VPN tunnel (HTB/VL/PG ranges). Default covers the standard HTB tunnel; pro labs typically need 10.13.0.0/16 and 10.129.0.0/16 added."
+variable "vpn_tunnel_cidrs" {
+  description = "Target subnets reachable through the OpenVPN tunnel (cyber range CIDRs). Default covers the standard tunnel; pro labs typically need 10.13.0.0/16 and 10.129.0.0/16 added."
   type        = list(string)
   default     = ["10.10.0.0/16"]
 }

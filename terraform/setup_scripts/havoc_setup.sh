@@ -15,11 +15,9 @@ MAIN_VPC_CIDR="${main_vpc_cidr}"
 REDIRECTOR_VPC_CIDR="${redirector_vpc_cidr}"
 
 # Set hostname
-echo "[*] Setting hostname..."
 hostnamectl set-hostname havoc
 
 # Configure /etc/hosts for lab machines
-echo "[*] Configuring /etc/hosts..."
 cat >> /etc/hosts << HOSTS
 
 # redStack lab hosts
@@ -28,11 +26,11 @@ ${guacamole_private_ip}  guac
 ${mythic_private_ip}     mythic
 ${sliver_private_ip}     sliver
 ${redirector_private_ip} redirector
-${windows_private_ip}    win-operator
+${windows_private_ip}    windows
+${kali_private_ip}       kali
 HOSTS
 
 # ── SSH first — ensures recovery access even if later steps fail ─────────────
-echo "[*] Configuring SSH authentication..."
 echo "admin:$SSH_PASSWORD" | chpasswd
 mkdir -p /home/admin
 chown admin:admin /home/admin
@@ -53,13 +51,11 @@ systemctl restart sshd
 echo "[+] SSH password auth active — recovery access available"
 
 # Update system
-echo "[*] Updating system packages..."
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
 
 # Install all build deps and runtime deps up front so build_havoc.sh
 # does not need apt access and can focus solely on the build steps.
-echo "[*] Installing packages (build deps, Qt5, XFCE4, TigerVNC)..."
 DEBIAN_FRONTEND=noninteractive apt-get install -y \
     git \
     build-essential \
@@ -94,7 +90,6 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y \
     libboost-all-dev
 
 # Configure UFW firewall
-echo "[*] Configuring firewall rules..."
 ufw --force reset
 ufw default deny incoming
 ufw default allow outgoing
@@ -107,7 +102,6 @@ ufw --force enable
 
 # Create Havoc profile (contains SSH_PASSWORD — must be templated here)
 # build_havoc.sh copies this into /opt/Havoc/profiles/ after cloning.
-echo "[*] Creating Havoc profile template..."
 mkdir -p /home/admin/.havoc
 cat > /home/admin/.havoc/default.yaotl << PROFILE
 Teamserver {
@@ -128,14 +122,13 @@ Demon {
 }
 
 Operators {
-    user "operator" {
+    user "admin" {
         Password = "$SSH_PASSWORD"
     }
 }
 PROFILE
 
 # TigerVNC desktop setup
-echo "[*] Configuring TigerVNC desktop..."
 mkdir -p /home/admin/.vnc
 printf '%s\n' "$SSH_PASSWORD" | vncpasswd -f > /home/admin/.vnc/passwd
 chmod 600 /home/admin/.vnc/passwd
@@ -185,6 +178,7 @@ Type=simple
 WorkingDirectory=/opt/Havoc
 ExecStart=/opt/Havoc/teamserver/teamserver server --profile /opt/Havoc/profiles/default.yaotl
 User=admin
+AmbientCapabilities=CAP_NET_BIND_SERVICE
 Restart=on-failure
 RestartSec=5
 StandardOutput=journal
@@ -311,7 +305,7 @@ echo "  VNC:          Reconnect via Guacamole — client autostarts on desktop"
 echo ""
 echo "  To connect the Havoc client:"
 echo "    Host:     localhost    Port: 40056"
-echo "    User:     operator     Pass: (see /opt/Havoc/profiles/default.yaotl)"
+echo "    User:     admin        Pass: (see /opt/Havoc/profiles/default.yaotl)"
 BUILDSCRIPT
 chmod +x /home/admin/build_havoc.sh
 

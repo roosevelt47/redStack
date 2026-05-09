@@ -12,6 +12,7 @@ terraform.tfvars
 # Terraform working directory
 .terraform/
 .terraform.lock.hcl
+tfplan
 
 
 # Editor/OS artifacts

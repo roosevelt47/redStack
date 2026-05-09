@@ -242,3 +242,83 @@ resource "aws_security_group_rule" "windows_egress" {
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.windows.id
 }
+
+# ============================================================================
+# KALI OPERATOR SECURITY GROUP
+# ============================================================================
+
+resource "aws_security_group" "kali" {
+  name        = "${var.project_name}-kali-sg"
+  description = "Security group for Kali Linux operator workstation"
+  vpc_id      = local.vpc_id
+
+  tags = {
+    Name = "${var.project_name}-kali-sg"
+    VPC  = "TeamServer-VPC"
+  }
+}
+
+# SSH from instructor only
+resource "aws_security_group_rule" "kali_ssh" {
+  type              = "ingress"
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+  cidr_blocks       = [var.localPub_ip]
+  description       = "SSH access for instructor"
+  security_group_id = aws_security_group.kali.id
+}
+
+# SSH from Guacamole (web-based SSH)
+resource "aws_security_group_rule" "kali_ssh_from_guacamole" {
+  type                     = "ingress"
+  from_port                = 22
+  to_port                  = 22
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.guacamole.id
+  description              = "SSH from Guacamole for web-based access"
+  security_group_id        = aws_security_group.kali.id
+}
+
+# XRDP from Guacamole (always allowed so post-deploy GUI conversion works without re-apply)
+resource "aws_security_group_rule" "kali_xrdp_from_guacamole" {
+  type                     = "ingress"
+  from_port                = 3389
+  to_port                  = 3389
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.guacamole.id
+  description              = "XRDP from Guacamole for GUI access (active when kali_deployment_mode=gui or after kali-go-gui)"
+  security_group_id        = aws_security_group.kali.id
+}
+
+# All traffic from main VPC (internal lab connectivity)
+resource "aws_security_group_rule" "kali_all_from_vpc" {
+  type              = "ingress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = [var.use_default_vpc ? data.aws_vpc.default[0].cidr_block : var.vpc_cidr]
+  description       = "All internal lab traffic from main VPC"
+  security_group_id = aws_security_group.kali.id
+}
+
+# All traffic from redirector VPC (cross-VPC lab connectivity)
+resource "aws_security_group_rule" "kali_all_from_redirector_vpc" {
+  type              = "ingress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = [aws_vpc.redirector.cidr_block]
+  description       = "All traffic from redirector VPC for lab connectivity"
+  security_group_id = aws_security_group.kali.id
+}
+
+# Outbound - allow all
+resource "aws_security_group_rule" "kali_egress" {
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.kali.id
+}

@@ -18,11 +18,9 @@ REDIRECTOR_VPC_CIDR="${redirector_vpc_cidr}"
 MYTHIC_ADMIN_PASSWORD="${mythic_admin_password}"
 
 # Set hostname
-echo "[*] Setting hostname..."
 hostnamectl set-hostname mythic
 
 # Configure /etc/hosts for lab machines
-echo "[*] Configuring /etc/hosts..."
 cat >> /etc/hosts << HOSTS
 
 # redStack lab hosts
@@ -31,16 +29,15 @@ ${guacamole_private_ip}  guac
 ${sliver_private_ip}     sliver
 ${havoc_private_ip}      havoc
 ${redirector_private_ip} redirector
-${windows_private_ip}    win-operator
+${windows_private_ip}    windows
+${kali_private_ip}       kali
 HOSTS
 
 # Update system
-echo "[*] Updating system packages..."
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
 
 # Install dependencies
-echo "[*] Installing Docker and dependencies..."
 apt-get install -y \
     docker.io \
     make \
@@ -59,7 +56,6 @@ usermod -aG docker admin
 
 # Configure SSH password authentication for Guacamole access only
 # Public IP access still requires SSH keys, only VPC IPs can use passwords
-echo "[*] Configuring SSH authentication (keys for public, passwords for VPC)..."
 echo "admin:$SSH_PASSWORD" | chpasswd
 mkdir -p /home/admin
 chown admin:admin /home/admin
@@ -80,7 +76,6 @@ SSHCONF
 systemctl restart sshd
 
 # Install Docker Compose V2 manually (not available in Debian repos)
-echo "[*] Installing Docker Compose V2..."
 mkdir -p /usr/local/lib/docker/cli-plugins
 curl -SL https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
 chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
@@ -89,7 +84,6 @@ chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 docker compose version
 
 # Configure UFW firewall
-echo "[*] Configuring UFW firewall..."
 ufw --force reset
 ufw default deny incoming
 ufw default allow outgoing
@@ -102,18 +96,15 @@ ufw allow from $REDIRECTOR_VPC_CIDR to any port 443 proto tcp comment 'HTTPS C2 
 ufw --force enable
 
 # Clone Mythic
-echo "[*] Cloning Mythic C2 framework..."
 cd /opt
 git clone https://github.com/its-a-feature/Mythic
 chown -R admin:admin Mythic
 cd Mythic
 
 # Install Mythic CLI
-echo "[*] Installing Mythic CLI..."
 make
 
 # Set admin password before first start so it's deterministic
-echo "[*] Configuring Mythic admin password..."
 ./mythic-cli config set MYTHIC_ADMIN_PASSWORD "$MYTHIC_ADMIN_PASSWORD"
 
 # Start Mythic (first run generates configs)
@@ -140,7 +131,6 @@ sleep 10
 sleep 60
 
 # Install mythic-py for CLI-based payload building
-echo "[*] Installing mythic-py..."
 pip3 install mythic --break-system-packages
 
 # Extract admin password for logs
@@ -149,7 +139,6 @@ echo "===== Mythic Admin Password: $MYTHIC_PASSWORD ====="
 
 # Optional: Create systemd service for autostart
 if [ "$ENABLE_AUTOSTART" = "true" ]; then
-    echo "[*] Creating systemd service for Mythic autostart..."
     cat > /etc/systemd/system/mythic.service <<EOF
 [Unit]
 Description=Mythic C2 Framework
@@ -175,4 +164,3 @@ EOF
 fi
 
 echo "===== Mythic Team Server Setup Completed $(date) ====="
-echo "===== Access Mythic UI at https://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4):7443 ====="

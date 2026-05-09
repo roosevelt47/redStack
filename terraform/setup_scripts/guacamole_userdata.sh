@@ -1,5 +1,5 @@
 #!/bin/bash
-# redirector_userdata.sh - Bootstrap user data for Apache redirector instance
+# guacamole_userdata.sh - Bootstrap user data for Guacamole server
 
 set -e
 
@@ -7,30 +7,28 @@ set -e
 exec > >(tee /var/log/user-data.log)
 exec 2>&1
 
-echo "===== Redirector Bootstrap Started $(date) ====="
+echo "===== Guacamole Bootstrap Started $(date) ====="
 
 # Variables from Terraform template
 SSH_PASSWORD="${ssh_password}"
 
 # Set hostname
-echo "[*] Setting hostname..."
-hostnamectl set-hostname redirector
+hostnamectl set-hostname guac
 
 # Configure /etc/hosts for lab machines
-echo "[*] Configuring /etc/hosts..."
 cat >> /etc/hosts << HOSTS
 
 # redStack lab hosts
-${redirector_private_ip} redirector
 ${guacamole_private_ip}  guac
 ${mythic_private_ip}     mythic
 ${sliver_private_ip}     sliver
 ${havoc_private_ip}      havoc
-${windows_private_ip}    win-operator
+${redirector_private_ip} redirector
+${windows_private_ip}    windows
+${kali_private_ip}       kali
 HOSTS
 
 # Set SSH password for Guacamole access
-echo "[*] Configuring SSH..."
 echo "admin:$SSH_PASSWORD" | chpasswd
 mkdir -p /home/admin
 chown admin:admin /home/admin
@@ -42,19 +40,16 @@ cat >> /etc/ssh/sshd_config << 'SSHCONF'
 PasswordAuthentication no
 PubkeyAuthentication yes
 
-# Allow password auth only from private networks (for Guacamole access via VPC)
-Match Address 172.16.0.0/12,10.0.0.0/8
+# Allow password auth from localhost, Docker bridge networks, and private VPCs
+Match Address 127.0.0.1,::1,172.16.0.0/12,10.0.0.0/8
     PasswordAuthentication yes
 SSHCONF
 
 systemctl restart sshd
 
 # Decode and run the setup script
-echo "[*] Extracting setup script..."
-echo "${setup_script_b64}" | base64 -d | gunzip > /root/redirector_setup.sh
-chmod +x /root/redirector_setup.sh
+echo "${setup_script_b64}" | base64 -d | gunzip > /root/guacamole_setup.sh
+chmod +x /root/guacamole_setup.sh
+bash /root/guacamole_setup.sh
 
-echo "[*] Running redirector setup..."
-bash /root/redirector_setup.sh
-
-echo "===== Redirector Bootstrap Complete $(date) ====="
+echo "===== Guacamole Bootstrap Complete $(date) ====="
