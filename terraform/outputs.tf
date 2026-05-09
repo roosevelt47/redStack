@@ -193,7 +193,7 @@ output "deployment_info" {
 }
 
 output "dedication" {
-  value     = "For Fev, My Forever."
+  value     = "Rm9yIEZldiwgTXkgRm9yZXZlci4="
   sensitive = true
 }
 
