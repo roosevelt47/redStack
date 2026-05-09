@@ -4,7 +4,7 @@ locals {
   # Auto-pick instance type and root volume size from kali_deployment_mode unless
   # the operator explicitly overrides via kali_instance_type / kali_volume_size.
   kali_instance_type = var.kali_instance_type != "" ? var.kali_instance_type : (
-    var.kali_deployment_mode == "gui" ? "t3.large" : "t3.medium"
+    var.kali_deployment_mode == "gui" ? "t3.medium" : "t3.medium"
   )
   kali_volume_size = var.kali_volume_size != 0 ? var.kali_volume_size : (
     var.kali_deployment_mode == "gui" ? 50 : 30

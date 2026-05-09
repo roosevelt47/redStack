@@ -42,14 +42,14 @@ redirector_instance_type = "t3.small"   # 2 vCPU, 2GB RAM
 
 # Kali operator workstation
 # Mode "headless": SSH only via Guacamole. Adds ~$30/mo at t3.medium 24/7 or ~$1/day for short sessions.
-# Mode "gui":      XFCE + XRDP via Guacamole. Auto-bumps to t3.large (doubles cost) and 50GB disk.
+# Mode "gui":      XFCE + XRDP via Guacamole. Uses t3.medium by default; bump to t3.large (8 GB) via kali_instance_type if resources are tight.
 # Switch from headless to GUI later without redeploy: SSH in, run `sudo kali-go-gui`.
 # IMPORTANT: First-time deployment requires AWS Marketplace acceptance for the Kali Linux AMI.
 # Visit https://aws.amazon.com/marketplace/pp/prodview-fznsw3f7mq7to and click "Continue to Subscribe"
 # (no charge — Kali project's AMIs are publicly shared, EULA accept is one-time per AWS account).
 kali_deployment_mode = "headless"
 # kali_deployment_mode = "gui"
-# kali_instance_type   = ""   # Leave empty to auto-pick (t3.medium headless, t3.large gui)
+# kali_instance_type   = ""   # Leave empty to auto-pick (t3.medium for both modes; set "t3.large" for gui if needed)
 # kali_volume_size     = 0    # Leave 0 to auto-pick (30 GB headless, 50 GB gui)
 
 # Network configuration
