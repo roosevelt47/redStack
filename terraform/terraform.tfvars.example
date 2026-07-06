@@ -37,7 +37,7 @@ project_name = "redStack"
 mythic_instance_type     = "t3.medium"  # 2 vCPU, 4GB RAM
 guacamole_instance_type  = "t3.small"   # 2 vCPU, 2GB RAM
 windows_instance_type    = "t3.medium"  # 2 vCPU, 4GB RAM
-sliver_instance_type     = "t3.small"   # 2 vCPU, 2GB RAM
+sliver_instance_type     = "t3.medium"  # 2 vCPU, 4GB RAM (Go cross-compiler OOMs on t3.small during implant generation and hangs SSH; see wiki 11)
 havoc_instance_type      = "t3.medium"  # 2 vCPU, 4GB RAM
 redirector_instance_type = "t3.small"   # 2 vCPU, 2GB RAM
 
@@ -56,7 +56,7 @@ kali_deployment_mode = "headless"
 # Network configuration
 use_default_vpc     = false          # Creates a dedicated VPC (recommended)
 vpc_cidr            = "10.50.0.0/16" # TeamServer VPC CIDR
-redirector_vpc_cidr = "10.60.0.0/16" # Redirector VPC CIDR — change to 10.61.0.0/16 for redStack-vpnTUN simultaneous deployment
+redirector_vpc_cidr = "10.60.0.0/16" # Redirector VPC CIDR
 
 # Mythic configuration
 enable_mythic_autostart = true  # Auto-start Mythic on boot
@@ -71,13 +71,17 @@ havoc_uri_prefix  = "/edge/cache/assets"
 # c2_header_name  = "X-Request-ID"  # Header name (default: X-Request-ID)
 # c2_header_value = ""              # Token value — leave empty to auto-generate (recommended)
 
-# --- vpnTUN routing for HTB / VulnLab / Proving Grounds Pro Labs ---
+# --- vpnTUN routing for Hack Smarter Labs (HSL) and other closed VPN ranges ---
+# redStack partners with Hack Smarter Labs (HSL); HSL is the default target
+# platform for tunneled deployments. The same tunnel path also reaches HTB,
+# VulnLab, and Proving Grounds pro labs.
 # Default redStack runs on the public internet (public domain + htaccess on).
-# Toggle this only when you need internal lab machines to reach Pro Lab
-# targets through the redirector's OpenVPN tunnel. See Part 8 for the full flow.
+# Toggle this on when internal lab machines need to reach HSL (or another range)
+# targets through the redirector's OpenVPN tunnel. See the OpenVPN Tunnel
+# Environments wiki page for the full flow.
 enable_vpn_tunnel                  = false  # true: OpenVPN client on redirector + WireGuard tunnel from C2 VPC
-enable_redirector_htaccess_filtering = true   # false for HTB/VL/PG: scanner/AV blocking is not useful in isolated lab networks
-# vpn_tunnel_cidrs = ["10.10.0.0/16"]  # Target subnets reachable through the tunnel (HTB tunnel default; pro labs usually also need 10.13.0.0/16 and 10.129.0.0/16)
+enable_redirector_htaccess_filtering = true   # false for HSL/HTB/VL/PG: scanner/AV blocking is not useful in isolated lab networks
+# vpn_tunnel_cidrs = ["10.10.0.0/16"]  # Target subnets reachable through the tunnel (HSL/HTB tunnel default; pro labs usually also need 10.13.0.0/16 and 10.129.0.0/16)
 
 
 # Optional: Custom tags applied to every AWS resource (instances, SGs, EIPs, etc.)

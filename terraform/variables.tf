@@ -132,7 +132,7 @@ variable "enable_vpn_tunnel" {
 }
 
 variable "vpn_tunnel_cidrs" {
-  description = "Target subnets reachable through the OpenVPN tunnel (cyber range CIDRs). Default covers the standard tunnel; pro labs typically need 10.13.0.0/16 and 10.129.0.0/16 added."
+  description = "Target subnets reachable through the OpenVPN tunnel (cyber range CIDRs). Hack Smarter Labs (the featured platform) uses varying subnets, so a broad RFC1918 set is recommended for HSL; see the Supported Platforms wiki section for per-platform CIDRs."
   type        = list(string)
   default     = ["10.10.0.0/16"]
 }

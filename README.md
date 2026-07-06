@@ -6,7 +6,7 @@
 
 ![redStack Banner](assets/redStack-banner.png)
 
-> A self-contained Boot-to-Breach lab on AWS. Deploy a full red-team training environment in ~45 minutes: three C2 frameworks (Mythic, Sliver, Havoc), an Apache redirector, a Kali workstation, a Windows workstation, and a Guacamole portal. Two peered VPCs, header + URI gating, scanner blocking, optional OpenVPN routing for cyber ranges.
+> A self-contained Boot-to-Breach lab on AWS. Deploy a full red-team training environment in ~45 minutes: three C2 frameworks (Mythic, Sliver, Havoc), an Apache redirector, a Kali workstation, a Windows workstation, and a Guacamole portal. Two peered VPCs, header + URI gating, scanner blocking, optional OpenVPN routing for cyber ranges (Hack Smarter Labs is the featured partner platform; HTB, VulnLab, and OffSec also supported).
 
 **📖 [Full documentation lives in the redStack Wiki →](https://github.com/BaddKharma/redStack/wiki)**
 
