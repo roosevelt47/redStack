@@ -364,6 +364,15 @@ resource "aws_instance" "windows" {
 
   get_password_data = true
 
+  # Block create until AWS has generated and posted the encrypted
+  # Administrator password. The default 10m create timeout expires before
+  # this Windows AMI finishes cloud-init, so the provider was returning
+  # empty password_data and downstream consumers (deployment_info output,
+  # Guacamole RDP connection) baked in a blank password.
+  timeouts {
+    create = "30m"
+  }
+
   root_block_device {
     volume_size           = 50
     volume_type           = "gp3"
@@ -392,6 +401,13 @@ resource "aws_instance" "windows" {
 
   lifecycle {
     ignore_changes = [user_data]
+
+    # Fail the apply loudly if the password never posted, instead of
+    # silently proceeding and configuring Guacamole with a blank credential.
+    postcondition {
+      condition     = self.password_data != ""
+      error_message = "Windows password_data was not available before timeouts.create expired. Increase timeouts.create and re-apply."
+    }
   }
 
   tags = {
