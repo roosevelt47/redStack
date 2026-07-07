@@ -20,8 +20,9 @@ ssh_key_name = "rs-rsa-key"
 ssh_private_key_path = "../rs-rsa-key.pem"
 
 # Your redirector domain (apex or subdomain, e.g. c2.yourdomain.com).
-# Point this domain's A record to the Redirector Elastic IP after deployment.
-redirector_domain = "exampledomain.com"
+# Direct Access only: point this domain's A record to the Redirector Elastic IP after deployment.
+# Leave commented for Tunneled Access or IP-only mode: the redirector then identifies by its public IP.
+# redirector_domain = "c2.yourdomain.tld"
 
 # ============================================================================
 # OPTIONAL VARIABLES - Customize as needed
