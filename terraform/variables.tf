@@ -132,7 +132,7 @@ variable "enable_vpn_tunnel" {
 }
 
 variable "vpn_tunnel_cidrs" {
-  description = "Target subnets reachable through the OpenVPN tunnel (cyber range CIDRs). Hack Smarter Labs (the featured platform) uses varying subnets, so a broad RFC1918 set is recommended for HSL; see the Supported Platforms wiki section for per-platform CIDRs."
+  description = "Target subnets reachable through the OpenVPN tunnel (cyber range CIDRs). Route only the specific target /16s you need. Do NOT use a supernet that contains the lab VPCs (10.50.0.0/16, 10.60.0.0/16): this list becomes the Guacamole WireGuard AllowedIPs and its tunnel endpoint is the redirector's 10.60.x IP, so a broad range like 10.0.0.0/8 deadlocks the tunnel. See the Supported Platforms wiki section for per-platform CIDRs."
   type        = list(string)
   default     = ["10.10.0.0/16"]
 }

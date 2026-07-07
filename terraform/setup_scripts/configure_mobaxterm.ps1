@@ -13,7 +13,7 @@ if ($moba) {
 $mobaDir = "$env:APPDATA\MobaXterm"
 New-Item -ItemType Directory -Force -Path $mobaDir | Out-Null
 
-# Sessions must be under [Bookmarks] (not [Bookmarks_0]) — MobaXterm strips the required
+# Sessions must be under [Bookmarks] (not [Bookmarks_0]): MobaXterm strips the required
 # space before #109# when rewriting [Bookmarks_0] entries, making sessions invisible.
 $mobaIni = @'
 [Misc]
@@ -94,4 +94,4 @@ Kali Linux (SSH)= #109#0%kali%22%admin%%-1%-1%%%%%0%-1%0%%%-1%-1%0%0%%1080%%0%0%
 $utf8NoBom = New-Object System.Text.UTF8Encoding $false
 [System.IO.File]::WriteAllText("$mobaDir\MobaXterm.ini", $mobaIni, $utf8NoBom)
 Write-Host "[+] MobaXterm sessions written to $mobaDir\MobaXterm.ini"
-Write-Host "[+] Open MobaXterm — redStack Sessions should appear in the sidebar."
+Write-Host "[+] Open MobaXterm. redStack Sessions should appear in the sidebar."
