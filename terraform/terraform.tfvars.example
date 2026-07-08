@@ -19,10 +19,12 @@ ssh_key_name = "rs-rsa-key"
 # lives in the repo root.
 ssh_private_key_path = "../rs-rsa-key.pem"
 
-# Your redirector domain (apex or subdomain, e.g. c2.yourdomain.com).
-# Direct Access only: point this domain's A record to the Redirector Elastic IP after deployment.
-# Leave commented for Tunneled Access or IP-only mode: the redirector then identifies by its public IP.
-# redirector_domain = "c2.yourdomain.tld"
+# Your redirector domain (apex or subdomain, e.g. yourdomain.tld).
+# Direct Access (default): set this to a domain you own, then point its A record
+#   at the Redirector Elastic IP after deployment.
+# Tunneled Access or IP-only: set to "" (or comment this line out); the redirector
+#   then identifies by its public IP.
+redirector_domain = "yourdomain.tld"
 
 # ============================================================================
 # OPTIONAL VARIABLES - Customize as needed
@@ -34,14 +36,26 @@ aws_region = "us-east-1"
 # Project name (used for resource tagging)
 project_name = "redStack"
 
-# --- vpnTUN routing (Hack Smarter Labs and other closed VPN ranges) ---
-# Off by default: redStack runs on the public internet (public domain + htaccess).
-# Toggle on when internal lab machines need to reach range targets (HSL, HTB,
-# VulnLab, Proving Grounds) through the redirector's OpenVPN tunnel.
-# See the OpenVPN Tunnel Environments wiki page for the full flow.
-enable_vpn_tunnel                  = false  # true: OpenVPN client on redirector + WireGuard tunnel from C2 VPC
-enable_redirector_htaccess_filtering = true   # false for HSL/HTB/VL/PG: scanner/AV blocking is not useful in isolated lab networks
-# vpn_tunnel_cidrs = ["10.10.0.0/16"]  # Target subnets reachable through the tunnel (HSL/HTB tunnel default; pro labs usually also need 10.13.0.0/16 and 10.129.0.0/16)
+# --- Deployment mode: Direct Access (default) or Tunneled Access ---
+# Direct Access (default): redStack faces the public internet. Leave the three
+#   values below at their defaults and set redirector_domain above.
+# Tunneled Access: internal lab hosts reach a closed VPN range (Hack Smarter Labs,
+#   HTB, VulnLab, Proving Grounds) through the redirector's OpenVPN tunnel. Flip all
+#   three together:
+#       enable_vpn_tunnel                    = true
+#       enable_redirector_htaccess_filtering = false
+#       vpn_tunnel_cidrs                     = ["<your range's target subnet(s)>"]
+#   Full flow: OpenVPN Tunnel Environments wiki page.
+
+# OpenVPN client on redirector + WireGuard tunnel from the C2 VPC
+enable_vpn_tunnel = false
+
+# Apache scanner/AV filtering; set false for isolated ranges (HSL/HTB/VL/PG) where it adds nothing
+enable_redirector_htaccess_filtering = true
+
+# Target subnets reachable through the tunnel (used only when enable_vpn_tunnel = true).
+# HSL/HTB default is 10.10.0.0/16; pro labs usually also need 10.13.0.0/16 and 10.129.0.0/16.
+# vpn_tunnel_cidrs = ["10.10.0.0/16"]
 
 # Network configuration
 use_default_vpc     = false          # Creates a dedicated VPC (recommended)
