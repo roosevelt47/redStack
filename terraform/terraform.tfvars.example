@@ -36,10 +36,14 @@ aws_region = "us-east-1"
 # Project name (used for resource tagging)
 project_name = "redStack"
 
-# --- vpnTUN routing: false = Direct Access (public internet), true = Tunneled Access to a closed range (HSL/HTB/VL/PG) ---
+# vpnTUN routing: false = Direct Access (public internet), true = Tunneled Access to a closed range (HSL/HTB/VL/PG)
 enable_vpn_tunnel                    = false             # true = tunnel internal hosts to the range through the redirector
 enable_redirector_htaccess_filtering = true              # false when tunneling: AV/scanner blocking is not useful in an isolated range
-vpn_tunnel_cidrs                     = ["10.10.0.0/16"]  # range target subnet(s); HSL/HTB default, pro labs also 10.13.0.0/16 + 10.129.0.0/16
+
+# Target subnet(s) reachable through the tunnel. HSL/HTB default below.
+# Pro labs need several, comma-separated: ["10.10.0.0/16", "10.13.0.0/16", "10.129.0.0/16"]
+# Never include 10.50.0.0/16 or 10.60.0.0/16 (the lab VPCs) or the tunnel deadlocks.
+vpn_tunnel_cidrs                     = ["10.10.0.0/16"]
 
 # Network configuration
 use_default_vpc     = false          # Creates a dedicated VPC (recommended)
