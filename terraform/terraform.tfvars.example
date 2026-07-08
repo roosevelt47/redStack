@@ -113,7 +113,7 @@ tags = {
 #    Linux/Mac:
 #      chmod 400 ./rs-rsa-key.pem
 #    Windows (PowerShell):
-#      icacls .\rs-rsa-key.pem /inheritance:r /grant:r "$($env:USERNAME):(R)"
+#      icacls .\rs-rsa-key.pem /inheritance:r /grant:r "$($env:USERNAME):(F)"
 #
 # 3. Estimated monthly cost (us-east-1, on-demand pricing):
 #
