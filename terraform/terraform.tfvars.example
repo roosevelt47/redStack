@@ -36,26 +36,10 @@ aws_region = "us-east-1"
 # Project name (used for resource tagging)
 project_name = "redStack"
 
-# --- Deployment mode: Direct Access (default) or Tunneled Access ---
-# Direct Access (default): redStack faces the public internet. Leave the three
-#   values below at their defaults and set redirector_domain above.
-# Tunneled Access: internal lab hosts reach a closed VPN range (Hack Smarter Labs,
-#   HTB, VulnLab, Proving Grounds) through the redirector's OpenVPN tunnel. Flip all
-#   three together:
-#       enable_vpn_tunnel                    = true
-#       enable_redirector_htaccess_filtering = false
-#       vpn_tunnel_cidrs                     = ["<your range's target subnet(s)>"]
-#   Full flow: OpenVPN Tunnel Environments wiki page.
-
-# OpenVPN client on redirector + WireGuard tunnel from the C2 VPC
-enable_vpn_tunnel = false
-
-# Apache scanner/AV filtering; set false for isolated ranges (HSL/HTB/VL/PG) where it adds nothing
-enable_redirector_htaccess_filtering = true
-
-# Target subnets reachable through the tunnel (used only when enable_vpn_tunnel = true).
-# HSL/HTB default is 10.10.0.0/16; pro labs usually also need 10.13.0.0/16 and 10.129.0.0/16.
-# vpn_tunnel_cidrs = ["10.10.0.0/16"]
+# --- vpnTUN routing: off = Direct Access (public internet), on = Tunneled Access to a closed range (HSL/HTB/VL/PG) ---
+enable_vpn_tunnel                    = false             # true = tunnel internal hosts to the range through the redirector
+enable_redirector_htaccess_filtering = true              # false when tunneling: AV/scanner blocking is not useful in an isolated range
+vpn_tunnel_cidrs                     = ["10.10.0.0/16"]  # range target subnet(s); HSL/HTB default, pro labs also 10.13.0.0/16 + 10.129.0.0/16
 
 # Network configuration
 use_default_vpc     = false          # Creates a dedicated VPC (recommended)
