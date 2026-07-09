@@ -107,13 +107,42 @@ make
 # Set admin password before first start so it's deterministic
 ./mythic-cli config set MYTHIC_ADMIN_PASSWORD "$MYTHIC_ADMIN_PASSWORD"
 
+# Readiness helpers (poll instead of blind sleeps; the cold-boot nginx cert race
+# and post-install 'Created' containers slip right through fixed sleeps).
+wait_http() {
+    # Wait until the web UI actually serves the login page (nginx crash-loops on
+    # the self-signed cert until mythic_server writes it, then returns 200).
+    # -f returns non-zero on HTTP >= 400, so a clean exit means the login page served.
+    # (Avoids curl's -w write-out format, which Terraform templatefile would otherwise treat as a directive.)
+    for _ in $(seq 1 60); do
+        curl -skf -o /dev/null https://127.0.0.1:7443/new/login 2>/dev/null && return 0
+        sleep 5
+    done
+    return 1
+}
+
+wait_running() {
+    # Wait until the named container reports State=running.
+    name="$1"
+    for _ in $(seq 1 60); do
+        state=$(docker inspect -f '{{.State.Status}}' "$name" 2>/dev/null || echo missing)
+        [ "$state" = "running" ] && return 0
+        sleep 5
+    done
+    return 1
+}
+
 # Start Mythic (first run generates configs)
 echo "[*] Starting Mythic (this will take 3-5 minutes)..."
 ./mythic-cli start
 
-# Wait for Mythic to be fully operational
-echo "[*] Waiting for Mythic initialization..."
-sleep 180
+# Wait for the web UI to actually serve before proceeding
+echo "[*] Waiting for Mythic web UI on 7443..."
+if wait_http; then
+    echo "[+] Mythic web UI is serving on 7443"
+else
+    echo "[!] Mythic web UI did not return 200 in time; check 'mythic-cli logs mythic_nginx'"
+fi
 
 # Check status
 ./mythic-cli status
@@ -136,10 +165,32 @@ fi
 
 # Restart to apply new profiles
 echo "[*] Restarting Mythic to load new components..."
-./mythic-cli stop
-sleep 10
-./mythic-cli start
-sleep 60
+./mythic-cli restart
+
+# Newly installed services frequently land in 'Created' (image pulled, container
+# never started). Start them explicitly, then verify each reaches 'running' with
+# one retry, so the operator never has to hand-fix apollo/http at the podium.
+echo "[*] Starting installed services (http, apollo)..."
+./mythic-cli start http apollo || true
+
+for svc in http apollo; do
+    if wait_running "$svc"; then
+        echo "[+] $svc is running"
+    else
+        echo "[!] $svc not running, retrying start once..."
+        ./mythic-cli start "$svc" || true
+        if wait_running "$svc"; then
+            echo "[+] $svc is running after retry"
+        else
+            echo "[!] $svc STILL not running after retry; check 'mythic-cli logs $svc'"
+        fi
+    fi
+done
+
+# Confirm the web UI is still serving after the restart
+wait_http && echo "[+] Mythic web UI serving after restart" || echo "[!] Mythic web UI not serving after restart"
+
+./mythic-cli status
 
 # Install mythic-py for CLI-based payload building
 pip3 install mythic --break-system-packages
