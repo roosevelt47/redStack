@@ -123,6 +123,17 @@ echo "[*] Installing HTTP C2 profile and Apollo agent..."
 ./mythic-cli install github https://github.com/MythicC2Profiles/http
 ./mythic-cli install github https://github.com/MythicAgents/apollo
 
+# Serve the http C2 profile over TLS on 443 so the redirector re-encrypts to it
+# (matches the redirector's https backend forward; the profile auto-generates a
+#  self-signed cert on start). Applied before the restart below so it loads cleanly.
+HTTP_C2_CONFIG=/opt/Mythic/InstalledServices/http/http/c2_code/config.json
+if [ -f "$HTTP_C2_CONFIG" ]; then
+    sed -i 's/"use_ssl": false/"use_ssl": true/; s/"port": 80/"port": 443/' "$HTTP_C2_CONFIG"
+    echo "[+] http C2 profile configured for TLS on port 443"
+else
+    echo "[!] http C2 profile config not found at $HTTP_C2_CONFIG (SSL not enabled)"
+fi
+
 # Restart to apply new profiles
 echo "[*] Restarting Mythic to load new components..."
 ./mythic-cli stop
