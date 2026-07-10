@@ -6,13 +6,15 @@
 
 ![redStack Banner](assets/redStack-banner.png)
 
-**Attending DEF CON 34?** [Click here](https://github.com/BaddKharma/redStack-defcon34) to see presentation times and the prerequisites needed for the workshop.
+<p align="center"><strong>Attending DEF CON 34?</strong> <a href="https://github.com/BaddKharma/redStack-defcon34">Click here</a> to see presentation times and the prerequisites needed for the workshop.</p>
 
-![DEF CON 34](https://img.shields.io/badge/DEF%20CON%2034-black?logo=github)
-[![Adversary Village](https://img.shields.io/badge/Adversary%20Village-purple)](https://adversaryvillage.org/adversary-events/DEFCON-34/)
-[![Red Team Village](https://img.shields.io/badge/Red%20Team%20Village-red)](https://redteamvillage.io/)
-[![Noob Village](https://img.shields.io/badge/Noob%20Village-green)](https://www.noobvillage.org/)
-[![Session Docs & Prereqs](https://img.shields.io/badge/Session%20Docs%20%26%20Prereqs-1f6feb?logo=github)](https://github.com/BaddKharma/redStack-defcon34)
+<p align="center">
+  <img src="https://img.shields.io/badge/DEF%20CON%2034-black?logo=github" alt="DEF CON 34">
+  <a href="https://adversaryvillage.org/adversary-events/DEFCON-34/"><img src="https://img.shields.io/badge/Adversary%20Village-purple" alt="Adversary Village"></a>
+  <a href="https://redteamvillage.io/"><img src="https://img.shields.io/badge/Red%20Team%20Village-red" alt="Red Team Village"></a>
+  <a href="https://www.noobvillage.org/"><img src="https://img.shields.io/badge/Noob%20Village-green" alt="Noob Village"></a>
+  <a href="https://github.com/BaddKharma/redStack-defcon34"><img src="https://img.shields.io/badge/Session%20Docs%20%26%20Prereqs-1f6feb?logo=github" alt="Session Docs &amp; Prereqs"></a>
+</p>
 
 > A self-contained Boot-to-Breach lab on AWS. Deploy a full red-team training environment in ~45 minutes: three C2 frameworks (Mythic, Sliver, Havoc), an Apache redirector, a Kali workstation, a Windows workstation, and a Guacamole portal. Two peered VPCs, header + URI gating, scanner blocking, optional OpenVPN routing for cyber ranges (Hack Smarter Labs is the featured partner platform; HTB, VulnLab, and OffSec also supported).
 
