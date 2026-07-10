@@ -9,7 +9,7 @@
 **Attending DEF CON 34?** [Click here](https://github.com/BaddKharma/redStack-defcon34) to see presentation times and the prerequisites needed for the workshop.
 
 ![DEF CON 34](https://img.shields.io/badge/DEF%20CON%2034-black?logo=github)
-[![Adversary Village](https://img.shields.io/badge/Adversary%20Village-purple)](https://adversaryvillage.org/)
+[![Adversary Village](https://img.shields.io/badge/Adversary%20Village-purple)](https://adversaryvillage.org/adversary-events/DEFCON-34/)
 [![Red Team Village](https://img.shields.io/badge/Red%20Team%20Village-red)](https://redteamvillage.io/)
 [![Noob Village](https://img.shields.io/badge/Noob%20Village-green)](https://www.noobvillage.org/)
 [![Session Docs & Prereqs](https://img.shields.io/badge/Session%20Docs%20%26%20Prereqs-1f6feb?logo=github)](https://github.com/BaddKharma/redStack-defcon34)
