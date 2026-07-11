@@ -37,8 +37,8 @@ The wiki is the de facto operator handbook. This README is a thin landing page s
 | # | What | Where |
 |---|------|-------|
 | 1 | First-time AWS setup (account, IAM, CLI, SSH key, Kali Marketplace subscription) | **[Prerequisites](https://github.com/BaddKharma/redStack/wiki/02.-Prerequisites)** |
-| 2 | Pick open or closed environment | **[Deployment Modes](https://github.com/BaddKharma/redStack/wiki/04.-Deployment-Mode-Architecture)** |
-| 3 | Configure tfvars and `terraform apply` | **[Deploy](https://github.com/BaddKharma/redStack/wiki/04.-Deploy)** |
+| 2 | Pick open or closed environment | **[Deployment Modes](https://github.com/BaddKharma/redStack/wiki/03.-Deployment-Architecture)** |
+| 3 | Configure tfvars and `terraform apply` | **[Deploy](https://github.com/BaddKharma/redStack/wiki/04.-Deploying-Terraform)** |
 | 4 | Confirm Guacamole + Windows + internal DNS | **[Verify](https://github.com/BaddKharma/redStack/wiki/05.-Verify)** |
 | 5 | Land first beacon: pick a C2 | **[Mythic](https://github.com/BaddKharma/redStack/wiki/10.-Mythic)** · **[Sliver](https://github.com/BaddKharma/redStack/wiki/11.-Sliver)** · **[Havoc](https://github.com/BaddKharma/redStack/wiki/12.-Havoc)** |
 
@@ -63,13 +63,13 @@ Seven EC2 instances across two peered VPCs. Two have public Elastic IPs (Guacamo
 | `kali` | Kali Linux workstation (AD enum + attack toolset) | No |
 
 Full inventory and sizing details: **[Lab-Inventory](https://github.com/BaddKharma/redStack/wiki/07.-Lab-Inventory)**.
-Architecture diagram: **[Lab-Architecture](https://github.com/BaddKharma/redStack/wiki/04.-Deployment-Mode-Architecture)**.
+Architecture diagram: **[Lab-Architecture](https://github.com/BaddKharma/redStack/wiki/03.-Deployment-Architecture)**.
 
 ---
 
 ## Cost
 
-Roughly **$0.27/hour** of compute while running. With `terraform destroy` between sessions (recommended), expected monthly cost is **~$15-20/month** for typical 5-10 hr/wk study cadence. Full breakdown including stop-vs-destroy tradeoffs: **[Cost-Management](https://github.com/BaddKharma/redStack/wiki/17.-Cost-Management)**.
+Roughly **$0.27/hour** of compute while running. With `terraform destroy` between sessions (recommended), expected monthly cost is **~$15-20/month** for typical 5-10 hr/wk study cadence. Full breakdown including stop-vs-destroy tradeoffs: **[Cost-Management](https://github.com/BaddKharma/redStack/wiki/16.-Cost-Management)**.
 
 > [!CAUTION]
 > Forgetting a deployed lab is the #1 cause of unexpected AWS bills. Set a CloudWatch billing alarm before your first `terraform apply`.
@@ -78,23 +78,23 @@ Roughly **$0.27/hour** of compute while running. With `terraform destroy` betwee
 
 ## When Something Breaks
 
-**[Troubleshooting](https://github.com/BaddKharma/redStack/wiki/18.-Troubleshooting)** covers the failure modes that actually come up: Mythic SSL cert, Sliver missing, Havoc build failed, agent not calling back, Marketplace `OptInRequired`, VPC limits, `redirect.rules` download issues, Kali user rename, `ssh -R` binding behavior, and more.
+**[Troubleshooting](https://github.com/BaddKharma/redStack/wiki/17.-Troubleshooting)** covers the failure modes that actually come up: Mythic SSL cert, Sliver missing, Havoc build failed, agent not calling back, Marketplace `OptInRequired`, VPC limits, `redirect.rules` download issues, Kali user rename, `ssh -R` binding behavior, and more.
 
 ---
 
 ## Wiki Page Map
 
-**Getting started:** [Home](https://github.com/BaddKharma/redStack/wiki) · [Quick-Start](https://github.com/BaddKharma/redStack/wiki/01.-Quick-Start) · [Prerequisites](https://github.com/BaddKharma/redStack/wiki/02.-Prerequisites) · [Deployment-Modes](https://github.com/BaddKharma/redStack/wiki/04.-Deployment-Mode-Architecture) · [Deploy](https://github.com/BaddKharma/redStack/wiki/04.-Deploy) · [Verify](https://github.com/BaddKharma/redStack/wiki/05.-Verify) · [First-Run](https://github.com/BaddKharma/redStack/wiki/06.-First-Run)
+**Getting started:** [Home](https://github.com/BaddKharma/redStack/wiki) · [Quick-Start](https://github.com/BaddKharma/redStack/wiki/01.-Quick-Start) · [Prerequisites](https://github.com/BaddKharma/redStack/wiki/02.-Prerequisites) · [Deployment Modes](https://github.com/BaddKharma/redStack/wiki/03.-Deployment-Architecture) · [Deploy](https://github.com/BaddKharma/redStack/wiki/04.-Deploying-Terraform) · [Verify](https://github.com/BaddKharma/redStack/wiki/05.-Verify) · [First-Run](https://github.com/BaddKharma/redStack/wiki/06.-First-Run)
 
-**Reference:** [Lab-Architecture](https://github.com/BaddKharma/redStack/wiki/04.-Deployment-Mode-Architecture) · [Lab-Inventory](https://github.com/BaddKharma/redStack/wiki/07.-Lab-Inventory) · [SSH-Access](https://github.com/BaddKharma/redStack/wiki/08.-SSH-Access) · [Cost-Management](https://github.com/BaddKharma/redStack/wiki/17.-Cost-Management)
+**Reference:** [Lab-Architecture](https://github.com/BaddKharma/redStack/wiki/03.-Deployment-Architecture) · [Lab-Inventory](https://github.com/BaddKharma/redStack/wiki/07.-Lab-Inventory) · [Guacamole](https://github.com/BaddKharma/redStack/wiki/08.-Guacamole) · [Cost-Management](https://github.com/BaddKharma/redStack/wiki/16.-Cost-Management)
 
 **C2 backends:** [Mythic](https://github.com/BaddKharma/redStack/wiki/10.-Mythic) · [Sliver](https://github.com/BaddKharma/redStack/wiki/11.-Sliver) · [Havoc](https://github.com/BaddKharma/redStack/wiki/12.-Havoc)
 
 **Workstations:** [Windows](https://github.com/BaddKharma/redStack/wiki/13.-Windows) · [Kali](https://github.com/BaddKharma/redStack/wiki/14.-Kali)
 
-**Infrastructure:** [Guacamole](https://github.com/BaddKharma/redStack/wiki/15.-Guacamole) · [Redirector](https://github.com/BaddKharma/redStack/wiki/09.-Redirector) · [OpenVPN-Tunnel-Environments](https://github.com/BaddKharma/redStack/wiki/16.-OpenVPN-Tunnel-Environments)
+**Infrastructure:** [Guacamole](https://github.com/BaddKharma/redStack/wiki/08.-Guacamole) · [Redirector](https://github.com/BaddKharma/redStack/wiki/09.-Redirector) · [OpenVPN-Tunnel-Environments](https://github.com/BaddKharma/redStack/wiki/15.-OpenVPN-Tunnel-Environments)
 
-**Help:** [Troubleshooting](https://github.com/BaddKharma/redStack/wiki/18.-Troubleshooting)
+**Help:** [Troubleshooting](https://github.com/BaddKharma/redStack/wiki/17.-Troubleshooting)
 
 ---
 
